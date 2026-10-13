@@ -17,7 +17,8 @@ import numpy as np
 
 from src.common.config import (DATA, FEATURE_DIM, IDLE_INDEX, NUM_SIGNS, POS_L, POS_R, PRESENT,
                                USER_DATA, WINDOW)
-from src.common.features import resample
+from src.common.features import resample, sequence_features
+from src.common.landmarks import RAW_DIM
 from src.train import augment as A
 
 CORE_THRESHOLD = 0.6       # motion-signal distance from the rest pose that counts as "signing"
@@ -61,16 +62,22 @@ def find_core(seq: np.ndarray, margin: int = 3) -> tuple[int, int]:
     return on, off
 
 
-def _make(label: int, seq: np.ndarray, source: str, name: str) -> SignSeq:
-    seq = seq.astype(np.float32)
+def _make(label: int, raw: np.ndarray, source: str, name: str) -> SignSeq:
+    seq = sequence_features(raw)
     return SignSeq(label, seq, *find_core(seq), source=source, name=name)
+
+
+def _load_raw(path) -> np.ndarray | None:
+    """Raw landmark file, or None for files from an older format."""
+    a = np.load(path)
+    return a if a.ndim == 2 and a.shape[1] == RAW_DIM else None
 
 
 def load_signs(profile: str | None = "default") -> tuple[list[SignSeq], list[SignSeq]]:
     """(training sequences, held-out user validation sequences)."""
-    train = [_make(i, np.load(DATA / "landmarks_full" / f"{i:02d}.npy"), "ref", f"ref/{i:02d}")
+    train = [_make(i, np.load(DATA / "landmarks_raw" / f"{i:02d}.npy"), "ref", f"ref/{i:02d}")
              for i in range(NUM_SIGNS)]
-    aug = DATA / "landmarks_aug"                       # simulated close-webcam crops of the references
+    aug = DATA / "landmarks_raw_aug"                   # simulated close-webcam crops of the references
     for d in sorted(aug.iterdir()) if aug.exists() else []:
         train += [_make(i, np.load(d / f"{i:02d}.npy"), "ref", f"{d.name}/{i:02d}")
                   for i in range(NUM_SIGNS) if (d / f"{i:02d}.npy").exists()]
@@ -79,7 +86,8 @@ def load_signs(profile: str | None = "default") -> tuple[list[SignSeq], list[Sig
     if base and base.exists():
         for i in range(NUM_SIGNS):
             files = sorted((base / f"{i:02d}").glob("*.npy"))
-            seqs = [_make(i, np.load(f), "user", f"{profile}/{i:02d}/{f.stem}") for f in files]
+            raws = [(f, _load_raw(f)) for f in files]
+            seqs = [_make(i, r, "user", f"{profile}/{i:02d}/{f.stem}") for f, r in raws if r is not None]
             seqs = [s for s in seqs if len(s.seq) >= 30 and s.seq[:, PRESENT].any()]
             if len(seqs) >= MIN_FOR_HOLDOUT:
                 val.append(seqs.pop())                 # newest recording = real validation example
@@ -93,15 +101,20 @@ def _speed(rng: np.random.Generator, bands: list[tuple[float, float]]) -> float:
 
 
 def augment(win: np.ndarray, rng: np.random.Generator) -> np.ndarray:
-    """Random mirror / body scale / shift / roll / hand dropout / pose dropout / noise."""
+    """Mirror, affine (roll / shear / body scale / shift), part dropout, temporal mask, noise."""
     if rng.random() < 0.5:
         win = A.mirror(win)
-    win = A.scale(win, rng.uniform(0.85, 1.15), rng.uniform(0.95, 1.05))
-    win = A.shift(win, rng.uniform(-0.12, 0.12), rng.uniform(-0.12, 0.12))
-    win = A.rotate(win, rng.uniform(-10, 10))
+    if rng.random() < 0.8:
+        win = A.affine(win, rng.uniform(-15, 15), rng.uniform(-0.1, 0.1), rng.uniform(0.85, 1.15),
+                       (rng.uniform(-0.12, 0.12), rng.uniform(-0.12, 0.12)))
     win = A.hand_dropout(win, rng, max_frames=6)
-    if rng.random() < 0.08:
-        win = A.pose_dropout(win)
+    every = np.arange(len(win))
+    if rng.random() < 0.1:                              # face not found (turned away, mask, lighting)
+        win = A.drop_part(win, every, A.FACE_PART, 2)
+    if rng.random() < 0.06:                             # shoulders not visible
+        win = A.drop_part(win, every, A.BODY_PART, 3)
+    if rng.random() < 0.3:
+        win = A.temporal_mask(win, rng)
     return A.add_noise(win, rng)
 
 
@@ -212,3 +225,15 @@ def real_val_set(val: list[SignSeq], rng: np.random.Generator, per_seq: int = 12
             xs.append(A.to_model_input(sign_window(s, rng, [(1.0, 1.0)])))
             ys.append(s.label)
     return np.stack(xs).astype(np.float32), np.array(ys, dtype=np.int64)
+
+
+def center_window(s: SignSeq) -> np.ndarray:
+    """Deterministic (WINDOW, F) live-like buffer with the sign's core centred (natural speed)."""
+    core = s.off - s.on
+    w = s.on + core // 2 - WINDOW // 2 if core < WINDOW else s.on + (core - WINDOW) // 2
+    pre = min(WINDOW, max(0, -w))
+    body = s.seq[max(0, w):max(0, min(len(s.seq), w + WINDOW))]
+    post = WINDOW - pre - len(body)
+    parts = ([np.zeros((pre, FEATURE_DIM), np.float32)] if pre else []) + [body]
+    parts += [np.zeros((post, FEATURE_DIM), np.float32)] if post else []
+    return np.concatenate(parts).astype(np.float32)

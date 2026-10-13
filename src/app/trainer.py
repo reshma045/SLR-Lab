@@ -20,7 +20,7 @@ def running() -> bool:
     return _proc is not None and _proc.poll() is None
 
 
-def start(profile: str, epochs: int = 200) -> dict:
+def start(profile: str, epochs: int = 120) -> dict:
     """Start training unless one is already running."""
     global _proc
     with _lock:

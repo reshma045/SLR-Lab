@@ -1,7 +1,7 @@
 """The user's own sign recordings: data/user/<profile>/<sign id>/<timestamp>.npy (+ .json meta).
 
-Live frames arrive at whatever rate the camera/browser manages; recordings are resampled onto the
-30 fps timeline used everywhere in training so they mix directly with the reference videos.
+Takes store RAW landmarks (hands + pose + face, src/common/landmarks.py), resampled onto the 30 fps
+timeline used in training, so features can change in future versions without re-recording.
 """
 from __future__ import annotations
 
@@ -13,7 +13,8 @@ from pathlib import Path
 
 import numpy as np
 
-from src.common.config import NATIVE_FPS, NOSE, NUM_SIGNS, PRESENT, USER_DATA
+from src.common.config import NATIVE_FPS, NUM_SIGNS, USER_DATA
+from src.common.landmarks import R_FACE_P, R_HAND_P, R_POSE_P, resample_raw
 
 MIN_HAND_RATE = 0.25       # a take must show hands in at least this share of frames
 MIN_POSE_RATE = 0.5        # ... and shoulders in at least this share
@@ -23,45 +24,38 @@ def _profile_dir(profile: str) -> Path:
     return USER_DATA / (re.sub(r"[^A-Za-z0-9_-]", "", profile) or "default")
 
 
-def to_30fps(times: list[float], vecs: list[np.ndarray]) -> np.ndarray:
-    """Linear interpolation of a timestamped sequence onto a uniform 30 fps grid."""
-    t = np.asarray(times, dtype=np.float64)
-    v = np.stack(vecs).astype(np.float32)
-    grid = np.arange(t[0], t[-1] + 1e-9, 1 / NATIVE_FPS)
-    j = np.clip(np.searchsorted(t, grid, side="right") - 1, 0, len(t) - 2)
-    a = np.clip((grid - t[j]) / np.maximum(t[j + 1] - t[j], 1e-9), 0, 1)[:, None]
-    return (v[j] * (1 - a) + v[j + 1] * a).astype(np.float32)
-
-
-def quality(seq: np.ndarray) -> dict:
-    """Share of frames with hands / pose and an ok flag with a human-readable reason."""
-    hands = float((seq[:, PRESENT].sum(1) > 0).mean())
-    pose = float((np.abs(seq[:, NOSE]).sum(1) > 0).mean())
+def quality(raw: np.ndarray) -> dict:
+    """Share of frames with hands / shoulders / face and an ok flag with a human-readable reason."""
+    hands = float((raw[:, R_HAND_P].sum(1) > 0).mean())
+    pose = float(raw[:, R_POSE_P].mean())
+    face = float(raw[:, R_FACE_P].mean())
     reason = ""
     if hands < MIN_HAND_RATE:
         reason = "Hands were not visible enough - keep both hands in the frame while signing."
     elif pose < MIN_POSE_RATE:
         reason = "Shoulders not visible - sit back so your head and shoulders are in view."
-    return {"hand_rate": round(hands, 3), "pose_rate": round(pose, 3), "ok": not reason, "reason": reason}
+    return {"hand_rate": round(hands, 3), "pose_rate": round(pose, 3), "face_rate": round(face, 3),
+            "ok": not reason, "reason": reason}
 
 
-def save(profile: str, sign_id: int, times: list[float], vecs: list[np.ndarray]) -> dict:
-    """Validate and store one take. Returns {saved, name, quality, frames, count}."""
+def save(profile: str, sign_id: int, times: list[float], raws: list[np.ndarray]) -> dict:
+    """Validate and store one take of raw frames. Returns {saved, name, path, quality, frames, count}."""
     if not 0 <= sign_id < NUM_SIGNS or len(times) < 10:
         return {"saved": False, "quality": {"ok": False, "reason": "Too few frames captured."}}
-    seq = to_30fps(times, vecs)
-    q = quality(seq)
+    raw = resample_raw(times, raws, NATIVE_FPS)
+    q = quality(raw)
     if not q["ok"]:
-        return {"saved": False, "quality": q, "frames": len(seq)}
+        return {"saved": False, "quality": q, "frames": len(raw)}
     d = _profile_dir(profile) / f"{sign_id:02d}"
     d.mkdir(parents=True, exist_ok=True)
     name = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
-    np.save(d / f"{name}.npy", seq)
-    meta = {"sign_id": sign_id, "frames": len(seq), "duration_s": round(len(seq) / NATIVE_FPS, 2),
-            "captured_fps": round(len(times) / max(times[-1] - times[0], 1e-6), 1), **q,
+    np.save(d / f"{name}.npy", raw)
+    meta = {"sign_id": sign_id, "frames": len(raw), "duration_s": round(len(raw) / NATIVE_FPS, 2),
+            "captured_fps": round(len(times) / max(times[-1] - times[0], 1e-6), 1), "format": "raw-v3", **q,
             "created": time.strftime("%Y-%m-%d %H:%M:%S")}
     (d / f"{name}.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
-    return {"saved": True, "name": name, "quality": q, "frames": len(seq), "count": count(profile, sign_id)}
+    return {"saved": True, "name": name, "path": str(d / f"{name}.npy"), "quality": q, "frames": len(raw),
+            "count": count(profile, sign_id)}
 
 
 def count(profile: str, sign_id: int) -> int:

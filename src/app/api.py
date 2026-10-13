@@ -12,6 +12,20 @@ router = APIRouter(prefix="/api")
 verifier = None          # set by server.py (shared ClaudeVerifier)
 
 
+def rebuild_personal_examples() -> int:
+    """Re-embed the active profile's takes with the current model (after deletes / profile switch)."""
+    onnx = MODELS / "jsl_model.onnx"
+    if not onnx.exists():
+        return 0
+    import onnxruntime as ort
+    from src.train import prototypes
+    sess = ort.InferenceSession(str(onnx), providers=["CPUExecutionProvider"])
+    try:
+        return prototypes.rebuild(sess, settings.load()["profile"])
+    except Exception:  # noqa: BLE001 - an incompatible old model must not break the API
+        return 0
+
+
 def _signs() -> list[dict]:
     english = load_english()
     return [{"id": i, "sign": s, "english": english.get(s, ""),
@@ -28,7 +42,10 @@ def get_settings() -> dict:
 
 @router.post("/settings")
 def post_settings(patch: dict = Body(...)) -> dict:
+    old_profile = settings.load()["profile"]
     s = settings.update(patch)
+    if s["profile"] != old_profile:
+        rebuild_personal_examples()
     if verifier is not None:
         verifier.model = s["claude"]["model"]
     return get_settings()
@@ -76,19 +93,21 @@ def list_recordings(sid: int) -> dict:
 def delete_recording(sid: int, name: str) -> dict:
     if not recordings.delete(settings.load()["profile"], sid, name):
         raise HTTPException(404, "Recording not found")
+    rebuild_personal_examples()
     return {"ok": True, "count": recordings.count(settings.load()["profile"], sid)}
 
 
 @router.delete("/recordings")
 def delete_all_recordings() -> dict:
     recordings.delete_all(settings.load()["profile"])
+    rebuild_personal_examples()
     return {"ok": True}
 
 
 # ------------------------------------------------------------------ training
 @router.post("/train")
 def start_training(body: dict = Body(default={})) -> dict:
-    epochs = int(body.get("epochs", 200))
+    epochs = int(body.get("epochs", 120))
     return trainer.start(settings.load()["profile"], max(5, min(epochs, 400)))
 
 

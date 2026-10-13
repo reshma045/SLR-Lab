@@ -20,7 +20,8 @@ import numpy as np  # noqa: E402
 
 from scripts.extract_landmarks import TMP, collect_videos, is_blue_frame, read_frames  # noqa: E402
 from src.common.config import DATA, load_label_map  # noqa: E402
-from src.common.features import FeatureExtractor  # noqa: E402
+from src.common.features import sequence_features  # noqa: E402
+from src.common.landmarks import LandmarkExtractor  # noqa: E402
 from src.inference.claude_verifier import REF_DIR, SHEET_FRAMES, make_sheet  # noqa: E402
 from src.inference.predictor import annotate  # noqa: E402
 from src.train.dataset import find_core  # noqa: E402
@@ -37,16 +38,16 @@ def main() -> None:
     videos = collect_videos(zips[0] if zips else None, None if zips else DATA / "raw")
     REF_DIR.mkdir(parents=True, exist_ok=True)
     try:
-        with FeatureExtractor(0.3, 0.3, static=True) as fx:
+        with LandmarkExtractor(0.3, 0.3, static=True) as fx:
             for sid, label in sorted(load_label_map().items()):
                 frames = [f for f in read_frames(videos[label]) if is_blue_frame(f)]
-                on, off = find_core(np.load(DATA / "landmarks_full" / f"{sid}.npy"))
+                on, off = find_core(sequence_features(np.load(DATA / "landmarks_raw" / f"{sid}.npy")))
                 span = frames[on + 4:max(on + 10, off - 4)]       # active part, without rest pose
                 idx = np.linspace(0, len(span) - 1, SHEET_FRAMES).round().astype(int)
                 picked = []
                 for i in idx:
-                    _, hres, _ = fx.process(span[i])
-                    picked.append(crop_signer(annotate(span[i], hres)))
+                    _, results = fx.process(span[i])
+                    picked.append(crop_signer(annotate(span[i], results)))
                 (REF_DIR / f"{sid}.jpg").write_bytes(make_sheet(picked))
                 print(f"[{sid}] {label}: frames {on}-{off}")
     finally:

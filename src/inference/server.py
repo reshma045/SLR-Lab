@@ -16,9 +16,10 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.app import api, recordings, settings, store
-from src.common.config import FRONTEND, MODELS, MODEL_LEN, NUM_SIGNS, WINDOW, class_names, load_english
+from src.common.config import FRONTEND, MODEL_IN, MODELS, MODEL_LEN, NUM_SIGNS, WINDOW, class_names, load_english
 from src.inference.claude_verifier import ClaudeVerifier
 from src.inference.predictor import JSLPredictor
+from src.train import prototypes
 
 log = logging.getLogger("jsl.server")
 app = FastAPI(title="JSL Real-Time Recognition")
@@ -55,10 +56,12 @@ def decode_frame(b64: str) -> np.ndarray | None:
 
 def model_mode() -> str:
     """'model' if a compatible ONNX model exists, else 'demo'."""
-    probe = JSLPredictor.__new__(JSLPredictor)
-    probe.model_path = MODELS / "jsl_model.onnx"
-    probe._load_model()
-    return probe.mode
+    onnx = MODELS / "jsl_model.onnx"
+    if not onnx.exists():
+        return "demo"
+    import onnxruntime as ort
+    sess = ort.InferenceSession(str(onnx), providers=["CPUExecutionProvider"])
+    return "model" if sess.get_inputs()[0].shape[-1] == MODEL_IN else "demo"
 
 
 @app.get("/status")
@@ -125,13 +128,16 @@ async def ws_endpoint(ws: WebSocket) -> None:
         if rec is None:
             return None
         rec["times"].append(t)
-        rec["vecs"].append(predictor.last_vec.copy())
+        rec["raws"].append(predictor.last_raw.copy())
         elapsed = t - rec["t0"]
         if elapsed < rec["duration"]:
             return {"state": "recording", "sign_id": rec["sign_id"], "elapsed": round(elapsed, 2),
                     "duration": rec["duration"]}
         state["rec"] = None
-        res = recordings.save(cfg.get()["profile"], rec["sign_id"], rec["times"], rec["vecs"])
+        res = recordings.save(cfg.get()["profile"], rec["sign_id"], rec["times"], rec["raws"])
+        if res["saved"] and predictor.session is not None:     # instant personalisation, no retrain
+            res["personal_example"] = prototypes.add(predictor.session, np.load(res["path"]), rec["sign_id"])
+        res.pop("path", None)
         return {"state": "saved" if res["saved"] else "rejected", "sign_id": rec["sign_id"], **res}
 
     def handle(data: str) -> dict:
@@ -178,7 +184,7 @@ async def ws_endpoint(ws: WebSocket) -> None:
                 if 0 <= sid < NUM_SIGNS:
                     dur = float(msg.get("duration") or cfg.get()["record"]["duration_s"])
                     state["rec"] = {"sign_id": sid, "t0": time.monotonic(), "duration": dur,
-                                    "times": [], "vecs": []}
+                                    "times": [], "raws": []}
             elif kind == "record_cancel":
                 state["rec"] = None
 

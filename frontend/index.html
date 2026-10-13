@@ -59,10 +59,12 @@ html,body{overflow:hidden}
 <body>
 <div class="live">
   <section class="card camcard">
-    <h2>Webcam · MediaPipe hands + pose<span class="sp"></span><span id="params" class="small"></span></h2>
+    <h2>Webcam · MediaPipe hands + body + face<span class="sp"></span><span id="params" class="small"></span></h2>
     <div class="stage">
       <div class="chips"><span class="chip"><span class="dot" id="handDot"></span><b id="handTxt">No hands</b></span>
-        <span class="chip"><span class="dot" id="poseDot"></span><b id="poseTxt">Shoulders?</b></span></div>
+        <span class="chip"><span class="dot" id="poseDot"></span><b id="poseTxt">Shoulders?</b></span>
+        <span class="chip"><span class="dot" id="faceDot"></span><b id="faceTxt">Face?</b></span>
+        <span class="chip" title="Mouth movement (mouthing) is part of the recognition">Mouth <span class="bar" style="width:46px;height:5px"><i id="mouthBar"></i></span></span></div>
       <video autoplay muted playsinline></video><img alt="">
       <div class="overlay cam show"><div class="spin"></div><strong>Starting camera…</strong><span>Allow camera access when the browser asks.</span></div>
       <div class="overlay recon"><div class="spin"></div><strong>Reconnecting…</strong><span></span></div>
@@ -103,7 +105,8 @@ html,body{overflow:hidden}
   const $ = id => document.getElementById(id);
   JSL.nav(`<span class="chip"><span class="dot" id="wsDot"></span>WS <b id="wsTxt">…</b></span>
     <span class="chip"><span class="dot" id="modeDot"></span><b id="modeTxt">—</b></span>
-    <span class="chip">FPS <b id="fpsTxt">0</b></span>`);
+    <span class="chip">FPS <b id="fpsTxt">0</b></span>
+    <span class="chip" title="Your recorded takes used as personal examples">Personal examples <b id="pexTxt">0</b></span>`);
   const S = (await JSL.settings()).settings;
   const histLen = S.display.history_len;
   if (S.display.show_glove) { $("gloveCard").style.display = "flex"; $("sessionCard").style.display = "none"; $("claudeCard").style.display = "none"; }
@@ -151,6 +154,7 @@ html,body{overflow:hidden}
     $("clTxt").textContent = { off: "off", ready: "ready", checking: "checking…", done: "ready", error: "error", unavailable: "no key" }[c.status] || c.status;
     dot("clDot", !on ? "" : c.status === "checking" ? "info" : c.status === "error" ? "bad" : "ok");
     $("askBtn").disabled = !on || c.status === "checking";
+    if (on && c.status === "ready" && !$("claudeBody").dataset.got) $("claudeBody").innerHTML = `<p class="muted small">Ready - recognised signs are double-checked by ${JSL.esc(S.claude.model)} (${JSL.esc(S.claude.mode)} mode). Press “Ask Claude” to check the current clip.</p>`;
     const key = JSON.stringify([c.status, c.sign, c.trigger, c.error, c.latency_s]);
     if (key === claudeKey) return; claudeKey = key;
     const line = $("claudeLine");
@@ -160,6 +164,7 @@ html,body{overflow:hidden}
     const manual = c.trigger === "manual", agree = !manual && c.sign === c.trigger;
     line.innerHTML = `<span class="tag ${manual ? "wait" : agree ? "agree" : "differ"}">${manual ? "CLAUDE" : agree ? "CLAUDE AGREES" : "CLAUDE DIFFERS"}</span>
       <b>${JSL.esc(c.sign || "no sign")}</b><span>${JSL.esc(c.english || "")} · ${JSL.esc(c.confidence)} · ${c.latency_s}s</span>`;
+    $("claudeBody").dataset.got = "1";
     $("claudeBody").innerHTML = `<div class="det"><b>${JSL.esc(c.sign || "none")}</b><span class="muted">${JSL.esc(c.english || "")}</span><span class="t">${JSL.esc(c.model || "")} · ${c.latency_s}s</span></div>
       <p class="small" style="margin-top:8px">${JSL.esc(c.reason || "")}</p>`;
     if (!manual) { const d = session.find(x => x.sign === c.trigger && !x.claude); if (d) { d.claude = c.sign || "none"; renderSession(); } }
@@ -175,6 +180,9 @@ html,body{overflow:hidden}
       const n = (msg.left_hand ? 1 : 0) + (msg.right_hand ? 1 : 0);
       $("handTxt").textContent = n ? [msg.left_hand && "L", msg.right_hand && "R"].filter(Boolean).join(" + ") : "No hands"; dot("handDot", n ? "ok" : "");
       $("poseTxt").textContent = msg.pose ? "Shoulders ✓" : "Shoulders not visible"; dot("poseDot", msg.pose ? "ok" : "warn");
+      $("faceTxt").textContent = msg.face ? "Face ✓" : "Face not visible"; dot("faceDot", msg.face ? "ok" : "warn");
+      $("mouthBar").style.width = Math.min(100, (msg.mouth_open || 0) * 160) + "%";
+      $("pexTxt").textContent = msg.personal_examples || 0;
       $("buf").style.width = (msg.buffer_fill * 100) + "%"; $("bufTxt").textContent = JSL.pct(msg.buffer_fill);
       setPrediction(msg.prediction, msg.top3);
       if (msg.emitted) addDetection(msg);

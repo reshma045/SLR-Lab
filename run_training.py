@@ -20,9 +20,9 @@ from src.common.config import DATA, MODELS  # noqa: E402
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--profile", default="default", help="user recordings to include ('' = none)")
-    ap.add_argument("--epochs", type=int, default=200)
+    ap.add_argument("--epochs", type=int, default=120)
     args = ap.parse_args()
-    if not (DATA / "landmarks_full").exists():
+    if not (DATA / "landmarks_raw").exists():
         sys.exit("data/landmarks_full/ missing - run: python scripts/extract_landmarks.py")
     from src.train.export import export_onnx, write_meta
     from src.train.train import train, write_status
@@ -35,6 +35,12 @@ def main() -> int:
         ok = diff < 1e-4
         print(f"\nONNX export -> {MODELS / 'jsl_model.onnx'}  parity max|diff| = {diff:.2e}  [{'PASS' if ok else 'FAIL'}]")
         write_meta(report)
+        if ok and args.profile:
+            import onnxruntime as ort
+            from src.train import prototypes
+            sess = ort.InferenceSession(str(MODELS / "jsl_model.onnx"), providers=["CPUExecutionProvider"])
+            n = prototypes.rebuild(sess, args.profile)
+            print(f"Personal examples (few-shot prototypes) rebuilt: {n} takes")
         write_status(state="done" if ok else "failed", report=report, parity=diff,
                      error=None if ok else "ONNX parity check failed")
         return 0 if ok else 1

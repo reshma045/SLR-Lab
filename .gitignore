@@ -20,3 +20,7 @@ models/train.log
 models/train_status.json
 models/previous/
 data/landmarks_aug/
+data/landmarks_raw/
+data/landmarks_raw_aug/
+models/prototypes.npz
+models/prototypes.tmp.npz

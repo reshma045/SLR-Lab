@@ -41,7 +41,8 @@ kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;pad
     <div class="grid">
       <section class="card">
         <h2>Record yourself<span class="sp"></span><span class="chip"><span class="dot" id="handDot"></span><b id="handTxt">No hands</b></span>
-          <span class="chip"><span class="dot" id="poseDot"></span><b id="poseTxt">Shoulders?</b></span></h2>
+          <span class="chip"><span class="dot" id="poseDot"></span><b id="poseTxt">Shoulders?</b></span>
+          <span class="chip"><span class="dot" id="faceDot"></span><b id="faceTxt">Face?</b></span></h2>
         <div class="stage">
           <video autoplay muted playsinline></video><img alt="">
           <div class="overlay cam show"><div class="spin"></div><strong>Starting camera…</strong><span>Allow camera access when the browser asks.</span></div>
@@ -56,7 +57,7 @@ kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;pad
           <label class="row small"><input type="checkbox" id="guided" checked> Guided: move to the next sign that needs takes</label>
         </div>
         <p class="small muted" style="margin-top:8px">Press <kbd>Space</kbd> to record. Each take: start with hands down → sign once at a natural pace → lower your hands.
-          Head, shoulders and both hands should be visible.</p>
+          Head, shoulders, face and both hands should be visible - mouth the word as you sign it, as you naturally would.</p>
         <div class="result" id="result" style="margin-top:10px"></div>
       </section>
       <section class="card">
@@ -116,7 +117,7 @@ kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;pad
   async function loadRecs() {
     const r = (await JSL.api(`/api/recordings/${sel}`)).recordings;
     $("recs").innerHTML = r.length ? r.slice().reverse().map(x => `<div class="r"><span>${JSL.esc(x.created || x.name)}</span>
-      <span class="muted">${x.duration_s}s · hands ${JSL.pct(x.hand_rate)} · pose ${JSL.pct(x.pose_rate)} · ${x.captured_fps} fps</span>
+      <span class="muted">${x.duration_s}s · hands ${JSL.pct(x.hand_rate)} · pose ${JSL.pct(x.pose_rate)} · face ${x.face_rate == null ? "—" : JSL.pct(x.face_rate)} · ${x.captured_fps} fps</span>
       <button class="btn sm danger" data-n="${JSL.esc(x.name)}">Delete</button></div>`).join("") : `<p class="small muted">No takes yet.</p>`;
     $("recs").querySelectorAll("button").forEach(b => b.onclick = async () => {
       await JSL.api(`/api/recordings/${sel}/${b.dataset.n}`, { method: "DELETE" }); JSL.toast("Take deleted"); await loadSigns(); loadRecs();
@@ -144,7 +145,7 @@ kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;pad
     phase = "idle"; $("recFill").style.width = "0"; $("recBtn").textContent = "● Record take"; idleButtons();
     const res = $("result");
     if (r.state === "saved") {
-      res.className = "result ok"; res.textContent = `Saved take for ${signs[r.sign_id].sign} (hands ${JSL.pct(r.quality.hand_rate)}, shoulders ${JSL.pct(r.quality.pose_rate)}). ${r.count}/${target}`;
+      res.className = "result ok"; res.textContent = `Saved take for ${signs[r.sign_id].sign} (hands ${JSL.pct(r.quality.hand_rate)}, shoulders ${JSL.pct(r.quality.pose_rate)}, face ${JSL.pct(r.quality.face_rate)}). ${r.count}/${target}` + (r.personal_example ? " · added as a personal example (works immediately)" : "");
       await loadSigns();
       if ($("guided").checked && signs[sel].recordings >= target) {
         const next = signs.find(s => s.recordings < target);
@@ -160,6 +161,7 @@ kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;pad
       const n = (msg.left_hand ? 1 : 0) + (msg.right_hand ? 1 : 0);
       $("handTxt").textContent = n ? [msg.left_hand && "L", msg.right_hand && "R"].filter(Boolean).join(" + ") : "No hands"; dot("handDot", n ? "ok" : "");
       $("poseTxt").textContent = msg.pose ? "Shoulders ✓" : "Shoulders not visible"; dot("poseDot", msg.pose ? "ok" : "warn");
+      $("faceTxt").textContent = msg.face ? "Face ✓" : "Face not visible"; dot("faceDot", msg.face ? "ok" : "warn");
       if (msg.recording) onRecording(msg.recording);
     } });
   $("recBtn").onclick = startCountdown; $("cancelBtn").onclick = cancel;

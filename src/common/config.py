@@ -13,15 +13,23 @@ FRONTEND = ROOT / "frontend"
 USER_DATA = DATA / "user"           # the user's own recordings (git-ignored)
 SETTINGS_FILE = DATA / "settings.json"
 
-# Feature layout v2 (see src/common/features.py):
+# Per-frame feature layout v3 (computed from raw landmarks, see src/common/features.py):
 HAND_DIM = 63              # one hand's shape: 21 keypoints x (x, y, z), wrist-relative / palm length
 SHAPE_L = slice(0, 63)     # signer's LEFT hand shape
 SHAPE_R = slice(63, 126)   # signer's RIGHT hand shape
-POS_L = slice(126, 129)    # left wrist (x, y) and palm size, relative to shoulders / shoulder width
+POS_L = slice(126, 129)    # left wrist (x, y) rel. shoulder centre / shoulder width, + palm / shoulder width
 POS_R = slice(129, 132)    # right wrist ...
-NOSE = slice(132, 134)     # nose (x, y) relative to shoulders / shoulder width
-PRESENT = slice(134, 136)  # 1.0 if left / right hand detected
-FEATURE_DIM = 136
+ELBOWS = slice(132, 136)   # left elbow (x, y), right elbow (x, y) rel. shoulders
+NOSE = slice(136, 138)     # nose (x, y) rel. shoulders
+LIPS = slice(138, 226)     # 4 lip contours x 11 points x (x, y), rel. mouth centre / mouth width
+MOUTH = slice(226, 228)    # mouth opening / mouth width, mouth width / face width
+EYES = slice(228, 230)     # left, right eye opening / face width
+BROWS = slice(230, 232)    # left, right eyebrow height above the eye / face width
+ROLL = slice(232, 234)     # unit vector right eye -> left eye (head tilt)
+TIPS = slice(234, 242)     # L thumb, L index, R thumb, R index tip (x, y) rel. nose / face width
+PRESENT = slice(242, 246)  # left hand, right hand, face, body (shoulders) detected
+FEATURE_DIM = 246
+MODEL_IN = FEATURE_DIM * 3  # + velocity over 1 and 2 steps (added on the 60-step model input)
 WINDOW = 96                # live rolling buffer length (~3.2 s at 30 fps)
 MODEL_LEN = 60             # frames fed to the model after resampling
 NATIVE_FPS = 30.0

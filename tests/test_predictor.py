@@ -77,7 +77,9 @@ class _FakeSession:
     def run(self, _names, _feeds):
         logits = np.zeros((1, NUM_CLASSES), np.float32)
         logits[0, self.cls] = 8.0
-        return [logits]
+        emb = np.zeros((1, 8), np.float32)
+        emb[0, 0] = 1.0
+        return [logits, emb]
 
 
 def test_decision_logic_streak_cooldown_rearm():
@@ -122,7 +124,7 @@ def test_time_based_buffer_matches_frame_based_at_30fps():
             buf = np.zeros((WINDOW, FEATURE_DIM), np.float32)
             last = v[max(0, n - WINDOW):n]
             buf[WINDOW - len(last):] = last
-            assert np.allclose(pred.model_input()[0], resample(buf, MODEL_LEN), atol=1e-6)
+            assert np.allclose(pred.window_features(), resample(buf, MODEL_LEN), atol=1e-6)
     finally:
         pred.close()
 
@@ -133,8 +135,30 @@ def test_low_fps_covers_same_time_span():
     try:
         for i in range(0, 300, 3):                      # 10 fps for 10 s; value = timestamp
             pred.push_vector(np.full(FEATURE_DIM, i / 30, np.float32), t=i / 30)
-        x = pred.model_input()[0][:, 0]
+        x = pred.window_features()[:, 0]
         assert abs(x[-1] - 297 / 30) < 1e-5 and abs(x[0] - (297 - 95) / 30) < 1e-5
         assert pred.span() <= 96 / 30 + 0.2
+    finally:
+        pred.close()
+
+
+def test_personal_examples_shift_probabilities():
+    """A prototype that matches the live embedding pulls probability towards its sign."""
+    pred = JSLPredictor()
+    try:
+        fake = _FakeSession()
+        fake.cls = 3
+        pred.session, pred.mode = fake, "model"
+        pred.protos = None
+        for i in range(60):
+            pred.push_vector(np.ones(FEATURE_DIM, np.float32), t=i / 30)
+        base = pred._infer()
+        vecs = np.zeros((2, 8), np.float32)
+        vecs[0, 0] = 1.0                       # matches the fake embedding -> sign 7
+        vecs[1, 1] = 1.0                       # orthogonal -> sign 9
+        pred.protos = (np.array([7, 9]), vecs)
+        blended = pred._infer()
+        assert blended[7] > base[7] + 0.1 and blended[7] > blended[9]
+        assert np.isclose(blended.sum(), 1.0) and np.isclose(blended[IDLE_INDEX], base[IDLE_INDEX], atol=1e-6)
     finally:
         pred.close()

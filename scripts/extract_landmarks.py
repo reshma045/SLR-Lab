@@ -1,4 +1,4 @@
-"""Extract MediaPipe hand landmarks from the JSL reference videos.
+"""Extract raw MediaPipe landmarks (hands + pose + face) from the JSL reference videos.
 
 Usage:
     python scripts/extract_landmarks.py                 # auto-finds zip / mp4s in data/raw
@@ -7,13 +7,13 @@ Usage:
     python scripts/extract_landmarks.py --zooms 1.3,1.6,2.1   # + simulated close-webcam crops
 
 Outputs (relative to repo root):
-    data/landmarks_full/XX.npy   (T, 136) float32, native fps, signing frames only
-    data/landmarks/XX.npy        (60, 136) float32, whole sign resampled to 60 frames
-    data/extraction_report.json  per-sign frame counts + hand detection rate
+    data/landmarks_raw/XX.npy              (T, RAW_DIM) float32, native 30 fps, signing frames only
+    data/landmarks_raw_aug/z<zoom>/XX.npy  same frames as a close laptop-webcam view (--zooms)
+    data/extraction_report.json            per-sign frame counts + hand / pose / face detection rates
 
-Each video = title card (pink) -> signer on blue chroma-key. Only blue-background
-frames are kept. Features: layout v2 (136-d hand shape + body-relative position, see
-src/common/features.py). Frames are NOT mirrored.
+Each video = title card (pink) -> signer on blue chroma-key. Only blue-background frames are kept.
+Raw layout: src/common/landmarks.py; features are computed from raw at training time.
+Frames are NOT mirrored.
 """
 from __future__ import annotations
 
@@ -29,12 +29,11 @@ import cv2
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from src.common.config import DATA, MODEL_LEN, NOSE, PRESENT, load_label_map, nfc  # noqa: E402
-from src.common.features import FeatureExtractor, resample  # noqa: E402
+from src.common.config import DATA, load_label_map, nfc  # noqa: E402
+from src.common.landmarks import R_FACE_P, R_HAND_P, R_POSE_P, LandmarkExtractor  # noqa: E402
 from src.common.views import webcam_view  # noqa: E402
 
 TMP = DATA / "_tmp"
-TARGET_FRAMES = MODEL_LEN
 BLUE_THRESHOLD = 0.35
 DET_CONF = 0.3  # tuned: 0.3 recovers overlapping-hand frames (ゴルフ 85->88%, ほとんど 93->97%)
 
@@ -113,7 +112,7 @@ def main() -> None:
     ap.add_argument("--zip", type=Path)
     ap.add_argument("--videos-dir", type=Path)
     ap.add_argument("--zooms", default="", help="also extract webcam-like crops, e.g. 1.3,1.6,2.1 "
-                    "-> data/landmarks_aug/z<zoom>/XX.npy (used as extra training data)")
+                    "-> data/landmarks_raw_aug/z<zoom>/XX.npy (extra training data)")
     args = ap.parse_args()
     zooms = [float(z) for z in args.zooms.split(",") if z.strip()]
 
@@ -138,49 +137,50 @@ def main() -> None:
     if missing:
         print(f"WARNING: labels with no video: {missing}")
 
-    (DATA / "landmarks").mkdir(exist_ok=True)
-    (DATA / "landmarks_full").mkdir(exist_ok=True)
+    out_dir = DATA / "landmarks_raw"
+    out_dir.mkdir(exist_ok=True)
     report = {}
+
+    def rates(raw: np.ndarray) -> tuple[float, float, float]:
+        return (float((raw[:, R_HAND_P].sum(1) > 0).mean()), float(raw[:, R_POSE_P].mean()),
+                float(raw[:, R_FACE_P].mean()))
 
     for label, path in sorted(videos.items(), key=lambda kv: label_to_id.get(kv[0], "99")):
         if label not in label_to_id:
             continue
-        # fresh tracker per video so tracking state never leaks between videos
-        with FeatureExtractor(det_conf=DET_CONF, track_conf=DET_CONF) as fx:
-            sid = label_to_id[label]
-            frames = read_frames(path)
-            if not frames:
-                print(f"[{sid}] {label}: could not decode video (install ffmpeg / check codec)")
-                continue
-            signing = [f for f in frames if is_blue_frame(f)]
-            note = ""
-            if len(signing) < 30:
-                signing = frames[len(frames) // 3:]
-                note = " (blue-detect failed, used last 2/3 of video)"
-            seq = np.stack([fx.process(f)[0] for f in signing])
-            detected = int((seq[:, PRESENT].sum(axis=1) > 0).sum())
-            pose_rate = float((np.abs(seq[:, NOSE]).sum(axis=1) > 0).mean())
-            rate = detected / len(seq)
-            np.save(DATA / "landmarks_full" / f"{sid}.npy", seq)
-            for z in zooms:                                # same frames, simulated close-webcam framing
-                out = DATA / "landmarks_aug" / f"z{z:g}"
-                out.mkdir(parents=True, exist_ok=True)
-                with FeatureExtractor(det_conf=DET_CONF, track_conf=DET_CONF) as fz:
-                    zseq = np.stack([fz.process(webcam_view(f, z))[0] for f in signing])
-                np.save(out / f"{sid}.npy", zseq)
-                note += f" | z{z:g} hands {(zseq[:, PRESENT].sum(1) > 0).mean():.0%}"
-            np.save(DATA / "landmarks" / f"{sid}.npy", resample(seq, TARGET_FRAMES))
-            report[sid] = {"label": label, "total_frames": len(frames),
-                           "signing_frames": len(signing), "hand_detection_rate": round(rate, 3),
-                           "pose_detection_rate": round(pose_rate, 3)}
-            flag = "" if rate >= 0.8 else "  <-- LOW DETECTION"
-            print(f"[{sid}] {label}: {len(signing)}/{len(frames)} signing frames, "
-                  f"hands in {rate:.0%}, pose in {pose_rate:.0%}{note}{flag}")
+        sid = label_to_id[label]
+        frames = read_frames(path)
+        if not frames:
+            print(f"[{sid}] {label}: could not decode video (install ffmpeg / check codec)")
+            continue
+        signing = [f for f in frames if is_blue_frame(f)]
+        note = ""
+        if len(signing) < 30:
+            signing = frames[len(frames) // 3:]
+            note = " (blue-detect failed, used last 2/3 of video)"
+        # fresh trackers per video so tracking state never leaks between videos
+        with LandmarkExtractor(det_conf=DET_CONF, track_conf=DET_CONF) as lx:
+            raw = np.stack([lx.process(f)[0] for f in signing])
+        np.save(out_dir / f"{sid}.npy", raw)
+        hand, pose, face = rates(raw)
+        for z in zooms:                                    # same frames, simulated close-webcam framing
+            zd = DATA / "landmarks_raw_aug" / f"z{z:g}"
+            zd.mkdir(parents=True, exist_ok=True)
+            with LandmarkExtractor(det_conf=DET_CONF, track_conf=DET_CONF) as lz:
+                zraw = np.stack([lz.process(webcam_view(f, z))[0] for f in signing])
+            np.save(zd / f"{sid}.npy", zraw)
+            note += f" | z{z:g} hands {rates(zraw)[0]:.0%} face {rates(zraw)[2]:.0%}"
+        report[sid] = {"label": label, "total_frames": len(frames), "signing_frames": len(signing),
+                       "hand_detection_rate": round(hand, 3), "pose_detection_rate": round(pose, 3),
+                       "face_detection_rate": round(face, 3)}
+        flag = "" if hand >= 0.8 else "  <-- LOW DETECTION"
+        print(f"[{sid}] {label}: {len(signing)}/{len(frames)} frames, hands {hand:.0%}, pose {pose:.0%}, "
+              f"face {face:.0%}{note}{flag}", flush=True)
 
     json.dump(report, open(DATA / "extraction_report.json", "w", encoding="utf-8"),
               ensure_ascii=False, indent=2)
     shutil.rmtree(TMP, ignore_errors=True)
-    print(f"\nDone: {len(report)}/{len(label_map)} signs extracted -> data/landmarks/, data/landmarks_full/")
+    print(f"\nDone: {len(report)}/{len(label_map)} signs extracted -> {out_dir}")
 
 
 if __name__ == "__main__":

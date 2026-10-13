@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 
 from src.app import recordings, settings, store
-from src.common.config import FEATURE_DIM, NOSE, PRESENT
 
 
 @pytest.fixture
@@ -34,24 +33,26 @@ def test_api_key_is_stored_in_env_file_and_masked(tmp_app):
 
 
 def _take(n=60, hands=True, pose=True, fps=15.0):
+    from src.common.landmarks import R_HAND_L, R_HAND_P, R_POSE_P, RAW_DIM
     times = [i / fps for i in range(n)]
-    vecs = []
+    raws = []
     for _ in times:
-        v = np.zeros(FEATURE_DIM, np.float32)
+        r = np.zeros(RAW_DIM, np.float32)
         if hands:
-            v[PRESENT.start] = 1
-            v[:63] = 0.5
+            r[R_HAND_P.start] = 1
+            r[R_HAND_L] = 0.5
         if pose:
-            v[NOSE] = [0, -0.7]
-        vecs.append(v)
-    return times, vecs
+            r[R_POSE_P] = 1
+        raws.append(r)
+    return times, raws
 
 
 def test_recording_resampled_to_30fps_and_quality_gate(tmp_app):
+    from src.common.landmarks import RAW_DIM
     res = recordings.save("default", 3, *_take())
     assert res["saved"] and res["count"] == 1
     seq = np.load(next((tmp_app / "user" / "default" / "03").glob("*.npy")))
-    assert seq.shape[1] == FEATURE_DIM and abs(len(seq) - 4 * 30) <= 2           # 4 s at 30 fps
+    assert seq.shape[1] == RAW_DIM and abs(len(seq) - 4 * 30) <= 2           # raw landmarks, 4 s at 30 fps
     assert not recordings.save("default", 3, *_take(hands=False))["saved"]
     assert not recordings.save("default", 3, *_take(pose=False))["saved"]
     assert recordings.counts("default")[3] == 1
