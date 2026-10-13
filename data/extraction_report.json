@@ -1,0 +1,152 @@
+{
+  "00": {
+    "label": "〜から",
+    "total_frames": 127,
+    "signing_frames": 103,
+    "hand_detection_rate": 1.0
+  },
+  "01": {
+    "label": "ありがとう",
+    "total_frames": 153,
+    "signing_frames": 96,
+    "hand_detection_rate": 1.0
+  },
+  "02": {
+    "label": "ある",
+    "total_frames": 160,
+    "signing_frames": 104,
+    "hand_detection_rate": 1.0
+  },
+  "03": {
+    "label": "いくつか",
+    "total_frames": 150,
+    "signing_frames": 111,
+    "hand_detection_rate": 1.0
+  },
+  "04": {
+    "label": "いる",
+    "total_frames": 121,
+    "signing_frames": 104,
+    "hand_detection_rate": 0.99
+  },
+  "05": {
+    "label": "いろいろ",
+    "total_frames": 105,
+    "signing_frames": 94,
+    "hand_detection_rate": 1.0
+  },
+  "06": {
+    "label": "おとな",
+    "total_frames": 125,
+    "signing_frames": 117,
+    "hand_detection_rate": 0.983
+  },
+  "07": {
+    "label": "けれども",
+    "total_frames": 157,
+    "signing_frames": 111,
+    "hand_detection_rate": 1.0
+  },
+  "08": {
+    "label": "とても",
+    "total_frames": 117,
+    "signing_frames": 108,
+    "hand_detection_rate": 1.0
+  },
+  "09": {
+    "label": "どちら",
+    "total_frames": 118,
+    "signing_frames": 106,
+    "hand_detection_rate": 0.991
+  },
+  "10": {
+    "label": "ほとんど",
+    "total_frames": 143,
+    "signing_frames": 101,
+    "hand_detection_rate": 0.97
+  },
+  "11": {
+    "label": "みんな",
+    "total_frames": 129,
+    "signing_frames": 111,
+    "hand_detection_rate": 1.0
+  },
+  "12": {
+    "label": "もらう",
+    "total_frames": 145,
+    "signing_frames": 136,
+    "hand_detection_rate": 1.0
+  },
+  "13": {
+    "label": "ゴルフ",
+    "total_frames": 163,
+    "signing_frames": 113,
+    "hand_detection_rate": 0.885
+  },
+  "14": {
+    "label": "コーヒー",
+    "total_frames": 178,
+    "signing_frames": 119,
+    "hand_detection_rate": 1.0
+  },
+  "15": {
+    "label": "サッカー",
+    "total_frames": 170,
+    "signing_frames": 117,
+    "hand_detection_rate": 1.0
+  },
+  "16": {
+    "label": "サークル",
+    "total_frames": 152,
+    "signing_frames": 118,
+    "hand_detection_rate": 1.0
+  },
+  "17": {
+    "label": "スキー",
+    "total_frames": 167,
+    "signing_frames": 107,
+    "hand_detection_rate": 0.991
+  },
+  "18": {
+    "label": "スケート",
+    "total_frames": 173,
+    "signing_frames": 113,
+    "hand_detection_rate": 1.0
+  },
+  "19": {
+    "label": "スポーツ",
+    "total_frames": 157,
+    "signing_frames": 100,
+    "hand_detection_rate": 1.0
+  },
+  "20": {
+    "label": "テレビ",
+    "total_frames": 133,
+    "signing_frames": 112,
+    "hand_detection_rate": 0.991
+  },
+  "21": {
+    "label": "ネズミ",
+    "total_frames": 163,
+    "signing_frames": 118,
+    "hand_detection_rate": 1.0
+  },
+  "22": {
+    "label": "バレーボール",
+    "total_frames": 129,
+    "signing_frames": 114,
+    "hand_detection_rate": 0.982
+  },
+  "23": {
+    "label": "ビール",
+    "total_frames": 148,
+    "signing_frames": 111,
+    "hand_detection_rate": 1.0
+  },
+  "24": {
+    "label": "ピアノ",
+    "total_frames": 146,
+    "signing_frames": 106,
+    "hand_detection_rate": 1.0
+  }
+}

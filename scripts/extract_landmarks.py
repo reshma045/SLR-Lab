@@ -21,23 +21,20 @@ import json
 import re
 import shutil
 import sys
-import unicodedata
 import zipfile
 from pathlib import Path
 
 import cv2
 import numpy as np
-import mediapipe as mp
 
-ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from src.common.config import DATA, MODEL_LEN, load_label_map, nfc  # noqa: E402
+from src.common.features import frame_landmarks, make_hands, resample  # noqa: E402
+
 TMP = DATA / "_tmp"
-TARGET_FRAMES = 60
+TARGET_FRAMES = MODEL_LEN
 BLUE_THRESHOLD = 0.35
-
-
-def nfc(s: str) -> str:
-    return unicodedata.normalize("NFC", s)
+DET_CONF = 0.3  # tuned: 0.3 recovers overlapping-hand frames (ゴルフ 85->88%, ほとんど 93->97%)
 
 
 def decode_zip_name(raw: str) -> str:
@@ -109,29 +106,6 @@ def read_frames(path: Path) -> list[np.ndarray]:
     return frames
 
 
-def frame_landmarks(frame: np.ndarray, hands) -> np.ndarray:
-    res = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-    out = np.zeros(126, dtype=np.float32)
-    if res.multi_hand_landmarks:
-        for lm, info in zip(res.multi_hand_landmarks, res.multi_handedness):
-            slot = 0 if info.classification[0].label == "Left" else 1
-            pts = np.array([(p.x, p.y, p.z) for p in lm.landmark], dtype=np.float32)
-            pts -= pts[0]  # wrist-relative
-            out[slot * 63:(slot + 1) * 63] = pts.flatten()
-    return out
-
-
-def resample(seq: np.ndarray, target: int) -> np.ndarray:
-    t = len(seq)
-    if t == target:
-        return seq.astype(np.float32)
-    idx = np.linspace(0, t - 1, target)
-    lo = np.floor(idx).astype(int)
-    hi = np.minimum(lo + 1, t - 1)
-    a = (idx - lo)[:, None]
-    return (seq[lo] * (1 - a) + seq[hi] * a).astype(np.float32)
-
-
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--zip", type=Path)
@@ -148,7 +122,7 @@ def main() -> None:
         else:
             sys.exit("No zip or mp4 files found in data/raw/ (use --zip or --videos-dir)")
 
-    label_map = {k: nfc(v) for k, v in json.load(open(DATA / "label_map.json", encoding="utf-8")).items()}
+    label_map = load_label_map()
     label_to_id = {v: k for k, v in label_map.items()}
 
     videos = collect_videos(zip_path, vdir)
@@ -163,12 +137,11 @@ def main() -> None:
     (DATA / "landmarks_full").mkdir(exist_ok=True)
     report = {}
 
-    with mp.solutions.hands.Hands(static_image_mode=False, max_num_hands=2,
-                                  min_detection_confidence=0.4,
-                                  min_tracking_confidence=0.4) as hands:
-        for label, path in sorted(videos.items(), key=lambda kv: label_to_id.get(kv[0], "99")):
-            if label not in label_to_id:
-                continue
+    for label, path in sorted(videos.items(), key=lambda kv: label_to_id.get(kv[0], "99")):
+        if label not in label_to_id:
+            continue
+        # fresh tracker per video so tracking state never leaks between videos
+        with make_hands(det_conf=DET_CONF, track_conf=DET_CONF) as hands:
             sid = label_to_id[label]
             frames = read_frames(path)
             if not frames:

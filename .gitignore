@@ -5,3 +5,7 @@ models/*.pt
 data/raw/*.zip
 data/raw/*.mp4
 data/_tmp/
+data/landmarks/
+data/landmarks_full/
+.pytest_cache/
+artifacts/
