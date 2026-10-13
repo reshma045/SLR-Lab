@@ -10,3 +10,4 @@ data/landmarks_full/
 .pytest_cache/
 artifacts/
 artifacts_train.log
+artifacts_replay.log
