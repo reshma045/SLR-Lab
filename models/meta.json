@@ -1,0 +1,71 @@
+{
+  "classes": [
+    "〜から",
+    "ありがとう",
+    "ある",
+    "いくつか",
+    "いる",
+    "いろいろ",
+    "おとな",
+    "けれども",
+    "とても",
+    "どちら",
+    "ほとんど",
+    "みんな",
+    "もらう",
+    "ゴルフ",
+    "コーヒー",
+    "サッカー",
+    "サークル",
+    "スキー",
+    "スケート",
+    "スポーツ",
+    "テレビ",
+    "ネズミ",
+    "バレーボール",
+    "ビール",
+    "ピアノ",
+    "—"
+  ],
+  "idle_index": 25,
+  "window": 96,
+  "model_len": 60,
+  "native_fps": 30.0,
+  "input": {
+    "name": "input",
+    "shape": [
+      "B",
+      60,
+      126
+    ],
+    "dtype": "float32"
+  },
+  "output": {
+    "name": "logits",
+    "shape": [
+      "B",
+      26
+    ]
+  },
+  "feature_layout": {
+    "dim": 126,
+    "slots": {
+      "left": [
+        0,
+        63
+      ],
+      "right": [
+        63,
+        126
+      ]
+    },
+    "per_hand": "21 MediaPipe keypoints x (x, y, z), each minus the wrist keypoint",
+    "missing_hand": "zeros",
+    "mirrored_input": false,
+    "temporal": "last 96 frames (front zero-padded) linearly resampled to 60"
+  },
+  "val_metrics_optimistic": {
+    "val_top1": 0.9991071428571429,
+    "val_top3": 1.0
+  }
+}
