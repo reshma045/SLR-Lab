@@ -66,7 +66,19 @@ background, so the live view never waits.
 - **Privacy:** keyframes are sent to the Anthropic API only while a key is set and Claude is
   enabled. The key is stored only in the git-ignored `.env` file. The UI shows it masked.
 - Claude does not know JSL perfectly. It is a cross-check against the reference videos, not a
-  replacement for recording your own data.
+  replacement for recording your own data. **Measured** (2026-10-13; Claude only, no hint from the
+  local model; the 25 reference clips cropped to a close-webcam view; the same signer as the
+  references, so this is the easy case):
+
+  | Recogniser | Correct | Time per sign |
+  |---|---|---|
+  | Local Transformer (this repo) | 25/25 | real time (~0.1 s) |
+  | Claude Haiku 5.5, thinking off (app default) | 5/25 | 2.2 s |
+  | Claude Haiku 5.5, thinking on, medium effort | 9/25 | 3.9 s |
+
+  Claude can't be the main recogniser: it sees still keyframes, not motion, and JSL isn't something
+  it knows reliably. Its "medium/high" confidence answers were right more often than its "low" ones,
+  so treat a confident disagreement as a hint to check, not as the truth.
 
 ### OpenCV app (no browser)
 
