@@ -1,0 +1,1 @@
+Drop your JSL video zip (e.g. jsl 25 words.zip) or the 25 .mp4 files in this folder.

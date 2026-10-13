@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+models/*.pt
+data/raw/*.zip
+data/raw/*.mp4
+data/_tmp/
