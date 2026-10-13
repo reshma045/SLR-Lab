@@ -33,11 +33,43 @@ python run_server.py                  # open http://127.0.0.1:8000
 `pip install` with no videos or training. If the ONNX file is missing, the server starts in
 **DEMO mode** and cycles through signs so the UI can still be shown.
 
+### OpenCV webcam app (no browser)
+
+```powershell
+python scripts/webcam_demo.py              # OpenCV window: q / Esc quits, c asks Claude
+python scripts/webcam_demo.py --camera 1   # pick another camera
+```
+
+On Windows the app opens the camera through Media Foundation (MSMF). On a typical webcam,
+DirectShow delivers only about 8 fps, MSMF about 24.
+
+### Optional: Claude as a second opinion
+
+The OpenCV, MediaPipe and Transformer pipeline is always the real-time classifier. If you add a
+Claude API key, each recognised sign is also double-checked by Claude (vision). Claude receives
+6 keyframes of your clip plus labelled keyframe sheets of the 25 reference videos, and picks the
+matching sign from the closed list (or "none"). The UI shows **CLAUDE AGREES / CLAUDE DIFFERS**
+under the prediction, and the **Ask Claude** button checks the current clip on demand.
+
+```powershell
+copy .env.example .env                         # then paste your key after ANTHROPIC_API_KEY=
+python scripts/build_reference_sheets.py       # once; needs the videos in data/raw/
+python run_server.py
+```
+
+- Uses `claude-opus-5-5` at low effort with structured JSON output. Server-side refusal fallback
+  is on. The 25 reference sheets are prompt-cached, so repeat calls cost little and run faster.
+  Expect a few seconds per check. It runs in the background and never blocks the live view.
+- **Privacy:** when a key is configured, 6 keyframes of the webcam clip are sent to the Anthropic
+  API for each check. Without a key, nothing leaves the machine.
+- `.env` and `data/reference_sheets/` (which contain the reference signer's image) are git-ignored.
+
 Verification scripts:
 
 ```powershell
 python -m pytest tests                # unit tests
 python scripts/replay_test.py         # replays the 25 reference videos through the live predictor
+python scripts/replay_test.py --fps 10   # same, simulating a 10 fps camera
 python scripts/ui_check.py            # server + WebSocket + headless Chromium screenshots
                                       # (first run: python -m playwright install chromium)
 ```
@@ -54,7 +86,9 @@ Measured on a Windows 11 laptop CPU (2026-10-13).
 | ONNX parity | max \|torch − onnx\| = 2.9e-6 (< 1e-4) ✔ |
 | **Replay test** (25 reference videos through the live predictor, frame by frame) | **25/25** correct, with **0** wrong or duplicate emissions (`models/replay_report.json`) |
 | Idle behaviour | An empty or black camera never emits a sign (pytest + UI check) |
-| Unit tests | 20 passed |
+| Replay at a simulated 15 fps and 10 fps camera | **25/25** and **25/25**. The earlier frame-count buffer scored 11/25 at 10 fps |
+| Unit tests | 25 passed |
+| Real webcam (camera 0, 640×480) | Opens and runs end to end at 23–24 fps on MSMF (processing alone: about 42 fps) |
 | UI check (headless Chromium, fake camera, 1920×960 and 1280×720) | No console errors, no page overflow, WebSocket connected, about 15–16 processed frames/s |
 
 What the replay test measures: each video is replayed as if live, with 1 s of rest before it,
@@ -83,14 +117,15 @@ fixed this without loosening any threshold. Result: 25/25 with no spurious emiss
  │ annotated frame (CSS mirror)  │                 │        │  src/common/features.py (shared with │
  │ prediction / top-3 / history  │ ◄─────────────  │        ▼  extraction): 126-d, L|R slots,      │
  │ glove heat maps + IMU chart   │   payload JSON  │   wrist-relative, missing hand = 0            │
- │  [SIMULATED SENSOR FEED]      │                 │ deque(maxlen=96)  ──► front-pad, resample→60  │
- └───────────────────────────────┘                 │        │ every 3rd frame once >=48 frames     │
+ │  [SIMULATED SENSOR FEED]      │                 │ timestamped buffer: last 3.2 s interpolated   │
+ └───────────────────────────────┘                 │ at 60 instants (any camera fps), every 0.1 s  │
                                                    │        ▼                                      │
                                                    │ ONNX Transformer ─► softmax ─► EMA(α=0.4)     │
                                                    │        ▼                                      │
                                                    │ decision: not idle, conf>=0.60, 5 stable      │
                                                    │ predictions, 1.5 s cooldown, re-arm on change │
-                                                   │                                               │
+                                                   │ on emit / "Ask Claude": 6 keyframes + 25      │
+                                                   │ cached reference sheets ─► Claude (optional)  │
                                                    │ SimulatedGlove (GloveSource) ─► UI only       │
                                                    └───────────────────────────────────────────────┘
 ```
@@ -101,8 +136,11 @@ layers (4 heads, FFN 256, GELU, dropout 0.2) → LayerNorm → Linear(128→26).
 
 ### Train/inference temporal consistency
 
-The live system classifies a rolling 96-frame buffer (about 3.2 s at 30 fps) resampled to 60
-frames. Training builds samples the same way rather than squashing each whole video to 60 frames:
+The live system classifies the last 3.2 s of hand motion, sampled at 60 evenly spaced instants.
+The buffer is **time-based**: frames carry timestamps and are interpolated onto the 30 fps
+timeline used in training, so a 10, 15 or 30 fps camera all produce the same input. (A plain
+"last 96 frames" buffer would cover 9.6 s at 10 fps and make every sign look three times faster.)
+Training builds samples the same way rather than squashing each whole video to 60 frames:
 
 1. Take the sign's full 30 fps sequence (rest → sign → rest) and speed-warp it (×0.7–1.4).
 2. Slide a 96-frame window over it so that at least 80% of the active sign ("core", found
@@ -129,9 +167,11 @@ data/raw/                                 videos go here (git-ignored)
 scripts/extract_landmarks.py              videos -> landmark .npy files + extraction_report.json
 scripts/replay_test.py                    live-path replay of the 25 reference videos
 scripts/ui_check.py                       end-to-end server/UI check with screenshots
+scripts/webcam_demo.py                    standalone OpenCV webcam app
+scripts/build_reference_sheets.py         reference keyframe sheets for the Claude second opinion
 src/common/                               config + shared feature extraction
 src/train/                                dataset/augmentation, model, training loop, ONNX export
-src/inference/                            predictor, simulated glove, FastAPI server
+src/inference/                            predictor, Claude verifier, simulated glove, FastAPI server
 frontend/index.html                       single-file UI (no build step)
 models/                                   jsl_model.onnx, meta.json, reports, confusion.png
 hardware/glove_design/                    tactile glove embroidery files (.pes)

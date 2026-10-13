@@ -1,4 +1,5 @@
 {
+  "fps": 30.0,
   "correct_first_emission": 25,
   "only_correct_emission": 25,
   "total": 25,

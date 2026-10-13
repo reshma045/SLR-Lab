@@ -1,0 +1,334 @@
+{
+  "fps": 15.0,
+  "correct_first_emission": 25,
+  "only_correct_emission": 25,
+  "total": 25,
+  "target": 22,
+  "rows": [
+    {
+      "id": "00",
+      "label": "〜から",
+      "emitted": [
+        [
+          "〜から",
+          3.67,
+          0.8937
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "01",
+      "label": "ありがとう",
+      "emitted": [
+        [
+          "ありがとう",
+          3.93,
+          0.9239
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "02",
+      "label": "ある",
+      "emitted": [
+        [
+          "ある",
+          3.93,
+          0.9255
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "03",
+      "label": "いくつか",
+      "emitted": [
+        [
+          "いくつか",
+          4.07,
+          0.9016
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "04",
+      "label": "いる",
+      "emitted": [
+        [
+          "いる",
+          3.93,
+          0.9161
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "05",
+      "label": "いろいろ",
+      "emitted": [
+        [
+          "いろいろ",
+          3.8,
+          0.9022
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "06",
+      "label": "おとな",
+      "emitted": [
+        [
+          "おとな",
+          4.2,
+          0.9041
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "07",
+      "label": "けれども",
+      "emitted": [
+        [
+          "けれども",
+          3.8,
+          0.9099
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "08",
+      "label": "とても",
+      "emitted": [
+        [
+          "とても",
+          3.67,
+          0.88
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "09",
+      "label": "どちら",
+      "emitted": [
+        [
+          "どちら",
+          3.93,
+          0.9164
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "10",
+      "label": "ほとんど",
+      "emitted": [
+        [
+          "ほとんど",
+          3.8,
+          0.886
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "11",
+      "label": "みんな",
+      "emitted": [
+        [
+          "みんな",
+          3.93,
+          0.9168
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "12",
+      "label": "もらう",
+      "emitted": [
+        [
+          "もらう",
+          3.93,
+          0.8426
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "13",
+      "label": "ゴルフ",
+      "emitted": [
+        [
+          "ゴルフ",
+          3.93,
+          0.9212
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "14",
+      "label": "コーヒー",
+      "emitted": [
+        [
+          "コーヒー",
+          3.8,
+          0.9088
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "15",
+      "label": "サッカー",
+      "emitted": [
+        [
+          "サッカー",
+          3.67,
+          0.9063
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "16",
+      "label": "サークル",
+      "emitted": [
+        [
+          "サークル",
+          3.93,
+          0.9335
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "17",
+      "label": "スキー",
+      "emitted": [
+        [
+          "スキー",
+          3.8,
+          0.8616
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "18",
+      "label": "スケート",
+      "emitted": [
+        [
+          "スケート",
+          3.93,
+          0.9089
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "19",
+      "label": "スポーツ",
+      "emitted": [
+        [
+          "スポーツ",
+          3.67,
+          0.9204
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "20",
+      "label": "テレビ",
+      "emitted": [
+        [
+          "テレビ",
+          3.53,
+          0.8634
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "21",
+      "label": "ネズミ",
+      "emitted": [
+        [
+          "ネズミ",
+          3.67,
+          0.9
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "22",
+      "label": "バレーボール",
+      "emitted": [
+        [
+          "バレーボール",
+          3.67,
+          0.8978
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "23",
+      "label": "ビール",
+      "emitted": [
+        [
+          "ビール",
+          3.8,
+          0.913
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "24",
+      "label": "ピアノ",
+      "emitted": [
+        [
+          "ピアノ",
+          3.53,
+          0.8854
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    }
+  ]
+}

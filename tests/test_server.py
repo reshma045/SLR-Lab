@@ -33,3 +33,4 @@ def test_websocket_frame_and_bad_frame():
         ws.send_json({"type": "frame", "data": _jpeg_b64(np.zeros((480, 640, 3), np.uint8))})
         p = ws.receive_json()
         assert p["type"] == "result" and "prediction" in p and "glove" in p and p["frame"]
+        assert p["claude"]["status"] in ("off", "ready")

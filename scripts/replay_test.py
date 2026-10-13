@@ -6,6 +6,7 @@ rests afterwards), at 30 fps timestamps. MediaPipe, the 96-frame buffer, EMA and
 logic all run exactly as in the server.
 
     python scripts/replay_test.py            # uses the zip / mp4s in data/raw/
+    python scripts/replay_test.py --fps 15   # simulate a slower camera/browser (drops frames)
 """
 from __future__ import annotations
 
@@ -26,7 +27,7 @@ LEAD, TAIL = 30, 45
 TARGET = 22
 
 
-def replay() -> dict:
+def replay(fps: float = NATIVE_FPS) -> dict:
     """Run the replay over all 25 videos; return a report dict."""
     import shutil
 
@@ -44,7 +45,9 @@ def replay() -> dict:
             seq = [frames[0]] * LEAD + frames + [frames[-1]] * TAIL
             pred.reset()
             emitted = []
-            for i, f in enumerate(seq):
+            keep = [i for i in range(len(seq)) if int(i * fps / NATIVE_FPS) != int((i - 1) * fps / NATIVE_FPS)]
+            for i in keep:                     # frames that a `fps` camera would have delivered
+                f = seq[i]
                 p = pred.process_frame(f, t=i / NATIVE_FPS, encode=False)
                 if p["emitted"]:
                     emitted.append((p["emitted"], round(i / NATIVE_FPS, 2), p["prediction"]["confidence"]))
@@ -61,15 +64,19 @@ def replay() -> dict:
     finally:
         pred.close()
         shutil.rmtree(TMP, ignore_errors=True)
-    report = {"correct_first_emission": lenient, "only_correct_emission": strict,
+    report = {"fps": fps, "correct_first_emission": lenient, "only_correct_emission": strict,
               "total": len(rows), "target": TARGET, "rows": rows}
-    with open(MODELS / "replay_report.json", "w", encoding="utf-8") as f:
+    name = "replay_report.json" if fps == NATIVE_FPS else f"replay_report_{fps:g}fps.json"
+    with open(MODELS / name, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
-    print(f"\nReplay: {lenient}/{len(rows)} signs correctly emitted first "
+    print(f"\nReplay @ {fps:g} fps: {lenient}/{len(rows)} signs correctly emitted first "
           f"({strict}/{len(rows)} with no other emission). Target >= {TARGET}.")
     return report
 
 
 if __name__ == "__main__":
-    r = replay()
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--fps", type=float, default=NATIVE_FPS)
+    r = replay(ap.parse_args().fps)
     sys.exit(0 if r["correct_first_emission"] >= TARGET else 1)

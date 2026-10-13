@@ -13,10 +13,12 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 
 from src.common.config import FRONTEND, MODELS, MODEL_LEN, NUM_SIGNS, WINDOW, class_names, load_english
+from src.inference.claude_verifier import ClaudeVerifier
 from src.inference.predictor import JSLPredictor
 
 log = logging.getLogger("jsl.server")
 app = FastAPI(title="JSL Real-Time Recognition")
+verifier = ClaudeVerifier()
 
 
 def decode_frame(b64: str) -> np.ndarray | None:
@@ -44,7 +46,7 @@ def status() -> dict:
     return {"status": "ok", "mode": "model" if model else "demo", "model_loaded": model,
             "window": WINDOW, "model_len": MODEL_LEN, "num_signs": NUM_SIGNS,
             "signs": [{"sign": s, "english": english.get(s, "")} for s in class_names()[:NUM_SIGNS]],
-            "glove": "simulated"}
+            "glove": "simulated", "claude": verifier.status()}
 
 
 @app.websocket("/ws")
@@ -59,13 +61,36 @@ async def ws_endpoint(ws: WebSocket) -> None:
     predictor = await loop.run_in_executor(pool, JSLPredictor)
     latest: dict[str, str | None] = {"data": None}
     ready = asyncio.Event()
+    claude_pool = ThreadPoolExecutor(max_workers=1)   # network-bound; never blocks the live loop
+    claude: dict = {"status": "ready" if verifier.available else "off", "auto": verifier.available}
+
+    def start_claude(trigger: str) -> None:
+        """Snapshot the current clip and ask Claude in the background (runs on the predictor thread)."""
+        if not verifier.available or claude["status"] == "checking":
+            return
+        frames, top3 = predictor.clip_frames(), predictor.current()[1]
+        auto = claude.get("auto", True)
+        claude.clear()
+        claude.update(status="checking", trigger=trigger, auto=auto)
+
+        def done(fut) -> None:
+            try:
+                res = fut.result()
+            except Exception as exc:  # noqa: BLE001
+                res = {"status": "error", "error": str(exc)}
+            claude.clear()
+            claude.update(res, trigger=trigger, auto=auto)
+        claude_pool.submit(verifier.verify, frames, top3).add_done_callback(done)
 
     def handle(data: str) -> dict:
         frame = decode_frame(data)
         if frame is None:
             return {"type": "error", "error": "bad frame", "mode": predictor.mode}
         try:
-            return {"type": "result", **predictor.process_frame(frame)}
+            payload = predictor.process_frame(frame)
+            if payload["emitted"] and claude.get("auto"):
+                start_claude(payload["emitted"])
+            return {"type": "result", **payload, "claude": dict(claude)}
         except Exception as exc:  # noqa: BLE001 - never let one frame kill the session
             log.exception("frame processing failed")
             return {"type": "error", "error": str(exc), "mode": predictor.mode}
@@ -78,6 +103,10 @@ async def ws_endpoint(ws: WebSocket) -> None:
                 ready.set()
             elif msg.get("type") == "reset":
                 await loop.run_in_executor(pool, predictor.reset)
+            elif msg.get("type") == "ask_claude":
+                await loop.run_in_executor(pool, start_claude, "manual")
+            elif msg.get("type") == "claude_auto":
+                claude["auto"] = bool(msg.get("enabled")) and verifier.available
 
     async def worker() -> None:
         while True:
@@ -99,3 +128,4 @@ async def ws_endpoint(ws: WebSocket) -> None:
             t.cancel()
         await loop.run_in_executor(pool, predictor.close)
         pool.shutdown(wait=False)
+        claude_pool.shutdown(wait=False, cancel_futures=True)

@@ -107,3 +107,34 @@ def test_decision_logic_streak_cooldown_rearm():
         assert feed(60) == [pred.names[3]]                  # idle re-armed it
     finally:
         pred.close()
+
+
+def test_time_based_buffer_matches_frame_based_at_30fps():
+    from src.common.config import MODEL_LEN, WINDOW
+    from src.common.features import resample
+    pred = JSLPredictor()
+    try:
+        v = np.random.default_rng(0).normal(size=(130, FEATURE_DIM)).astype(np.float32)
+        for n in (20, 96, 130):
+            pred.reset()
+            for i in range(n):
+                pred.push_vector(v[i], t=i / 30)
+            buf = np.zeros((WINDOW, FEATURE_DIM), np.float32)
+            last = v[max(0, n - WINDOW):n]
+            buf[WINDOW - len(last):] = last
+            assert np.allclose(pred.model_input()[0], resample(buf, MODEL_LEN), atol=1e-6)
+    finally:
+        pred.close()
+
+
+def test_low_fps_covers_same_time_span():
+    """At 10 fps the model input must still describe the last 3.2 s, not the last 9.6 s."""
+    pred = JSLPredictor()
+    try:
+        for i in range(0, 300, 3):                      # 10 fps for 10 s; value = timestamp
+            pred.push_vector(np.full(FEATURE_DIM, i / 30, np.float32), t=i / 30)
+        x = pred.model_input()[0][:, 0]
+        assert abs(x[-1] - 297 / 30) < 1e-5 and abs(x[0] - (297 - 95) / 30) < 1e-5
+        assert pred.span() <= 96 / 30 + 0.2
+    finally:
+        pred.close()
