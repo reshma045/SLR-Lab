@@ -7,6 +7,7 @@ logic all run exactly as in the server.
 
     python scripts/replay_test.py            # uses the zip / mp4s in data/raw/
     python scripts/replay_test.py --fps 15   # simulate a slower camera/browser (drops frames)
+    python scripts/replay_test.py --zoom 1.8 # simulate sitting close to a laptop webcam (4:3 upper-body crop)
 """
 from __future__ import annotations
 
@@ -21,13 +22,14 @@ if hasattr(sys.stdout, "reconfigure"):
 
 from scripts.extract_landmarks import TMP, collect_videos, is_blue_frame, read_frames  # noqa: E402
 from src.common.config import DATA, MODELS, NATIVE_FPS, load_label_map  # noqa: E402
+from src.common.views import webcam_view  # noqa: E402
 from src.inference.predictor import JSLPredictor  # noqa: E402
 
 LEAD, TAIL = 30, 45
 TARGET = 22
 
 
-def replay(fps: float = NATIVE_FPS) -> dict:
+def replay(fps: float = NATIVE_FPS, zoom: float = 1.0) -> dict:
     """Run the replay over all 25 videos; return a report dict."""
     import shutil
 
@@ -42,6 +44,8 @@ def replay(fps: float = NATIVE_FPS) -> dict:
         for sid in sorted(label_map):
             label = label_map[sid]
             frames = [f for f in read_frames(videos[label]) if is_blue_frame(f)]
+            if zoom != 1.0:
+                frames = [webcam_view(f, zoom) for f in frames]
             seq = [frames[0]] * LEAD + frames + [frames[-1]] * TAIL
             pred.reset()
             emitted = []
@@ -64,12 +68,12 @@ def replay(fps: float = NATIVE_FPS) -> dict:
     finally:
         pred.close()
         shutil.rmtree(TMP, ignore_errors=True)
-    report = {"fps": fps, "correct_first_emission": lenient, "only_correct_emission": strict,
+    report = {"fps": fps, "zoom": zoom, "correct_first_emission": lenient, "only_correct_emission": strict,
               "total": len(rows), "target": TARGET, "rows": rows}
-    name = "replay_report.json" if fps == NATIVE_FPS else f"replay_report_{fps:g}fps.json"
+    name = "replay_report" + ("" if fps == NATIVE_FPS else f"_{fps:g}fps") + ("" if zoom == 1 else f"_zoom{zoom:g}") + ".json"
     with open(MODELS / name, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
-    print(f"\nReplay @ {fps:g} fps: {lenient}/{len(rows)} signs correctly emitted first "
+    print(f"\nReplay @ {fps:g} fps, zoom {zoom:g}: {lenient}/{len(rows)} signs correctly emitted first "
           f"({strict}/{len(rows)} with no other emission). Target >= {TARGET}.")
     return report
 
@@ -78,5 +82,7 @@ if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--fps", type=float, default=NATIVE_FPS)
-    r = replay(ap.parse_args().fps)
+    ap.add_argument("--zoom", type=float, default=1.0)
+    a = ap.parse_args()
+    r = replay(a.fps, a.zoom)
     sys.exit(0 if r["correct_first_emission"] >= TARGET else 1)

@@ -1,15 +1,17 @@
 # JSL Real-Time Recognition
 
-Real-time Japanese Sign Language (日本手話) recognition demo for a Master's thesis at the
-University of Aizu. A webcam feed goes through MediaPipe Hands, then a small Transformer
-classifies the last ~3.2 s of hand motion into one of 25 signs (or "no sign").
+Real-time Japanese Sign Language (日本手話) recognition for a Master's thesis at the University of
+Aizu. A webcam feed goes through **OpenCV → MediaPipe Hands + Pose → a small Transformer**, which
+classifies the last ~3.2 s of motion into one of 25 signs (or "no sign"). A dashboard lets you
+record your own examples, retrain, measure your real accuracy and, optionally, ask **Claude** for a
+second opinion.
 
-![UI](docs/ui_1080p.png)
+![Live page](docs/ui_live_1080p.png)
 
-> **Honesty notes.** The classifier uses the **webcam only**. The glove heat maps and IMU trace
-> in the UI are a **simulated sensor feed** (badged as such) that stands in for the lab's tactile
-> gloves. Training data is **one reference video per sign** from a single signer, so the
-> validation accuracy below is optimistic. The real test is live use by other people.
+> **Honesty notes.** Recognition uses the **webcam only** (no glove/IMU is connected; the optional
+> glove panel is a labelled simulation). The base model is trained on **one reference video per
+> sign from one signer**. For good accuracy on *your* signing, record yourself on the
+> Record & Train page and retrain. Then measure it on the Self-test page.
 
 ## Quick start (Windows 11, Python 3.11)
 
@@ -19,206 +21,179 @@ MediaPipe 0.10.9 has no wheels for Python 3.12+, so use **Python 3.10 or 3.11**.
 py -3.11 -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+python run_server.py                  # open http://127.0.0.1:8000 in Chrome or Edge
 ```
 
-Put the video zip (`jsl 25 words.zip`) or the 25 `.mp4` files in `data/raw/`, then:
+`models/jsl_model.onnx` is committed, so the server works immediately. To rebuild everything from
+the videos, put `jsl 25 words.zip` (or the 25 `.mp4` files) in `data/raw/`, then run:
 
 ```powershell
-python scripts/extract_landmarks.py   # videos -> data/landmarks_full/*.npy   (~1 min)
-python run_training.py                # -> models/jsl_model.onnx, meta.json, confusion.png  (~5-10 min CPU)
-python run_server.py                  # open http://127.0.0.1:8000
+python scripts/extract_landmarks.py --zooms 1.3,1.6,2.1   # features + simulated close-webcam crops (~15 min)
+python scripts/build_reference_sheets.py                  # reference keyframes (Record page + Claude)
+python run_training.py                                    # ~5-10 min on CPU (or use the dashboard)
 ```
 
-`models/jsl_model.onnx` is committed, so `python run_server.py` works right after
-`pip install` with no videos or training. If the ONNX file is missing, the server starts in
-**DEMO mode** and cycles through signs so the UI can still be shown.
+## Dashboard
 
-### OpenCV webcam app (no browser)
+| Page | What it does |
+|---|---|
+| **Live** | Real-time recognition: big sign display, confidence and top-3, hand/shoulder status, session log, Claude verdict (AGREES / DIFFERS), history tape |
+| **Record & Train** | Guided recording of your own takes (countdown, quality check, reference keyframes, progress for all 25 signs); one-click **retrain** with live progress chart and **roll back** |
+| **Self-test** | Shows a random sign, you perform it, and it records whether it was recognised. Gives real accuracy per sign, what each sign is confused with, past runs, CSV export |
+| **History** | Every recognised sign with confidence and Claude's verdict and reason; search, stats, CSV export |
+| **Settings** | Claude API key and model, when to ask Claude, connection test; camera picker; recognition thresholds; recording, test and display options; dark or light theme |
+
+### Recommended workflow
+
+1. **Settings:** pick your camera. Sit so your **head, shoulders and both hands** are visible.
+2. **Record & Train:** record ≥ 5 takes per sign (guided mode walks through all 25; about 20 min).
+   Press **Retrain**. Once you have ≥ 3 takes of a sign, your newest take is held out as an
+   **honest test** (the "Real val" number).
+3. **Self-test:** run a test to get your real accuracy and see which signs need more takes.
+
+### Claude second opinion (optional)
+
+The local pipeline is always the real-time classifier: offline, free, about 16 processed fps.
+With a Claude API key (Settings → Claude), each recognised sign can be double-checked by Claude.
+It receives 6 keyframes of your clip (with hand skeletons) plus 25 labelled reference sheets
+(prompt-cached), and picks one of the 25 signs or "none" via structured output. It runs in the
+background, so the live view never waits.
+
+- Models: **Claude Haiku 5.5** (default; fastest and cheapest, runs without extended thinking for
+  latency), Sonnet 5.5 or Opus 5.5 (server-side refusal fallback enabled).
+- Modes: every recognised sign, only when the local model is unsure (below a set confidence), or
+  only when you press **Ask Claude**.
+- **Privacy:** keyframes are sent to the Anthropic API only while a key is set and Claude is
+  enabled. The key is stored only in the git-ignored `.env` file. The UI shows it masked.
+- Claude does not know JSL perfectly. It is a cross-check against the reference videos, not a
+  replacement for recording your own data.
+
+### OpenCV app (no browser)
 
 ```powershell
 python scripts/webcam_demo.py              # OpenCV window: q / Esc quits, c asks Claude
-python scripts/webcam_demo.py --camera 1   # pick another camera
 ```
 
-On Windows the app opens the camera through Media Foundation (MSMF). On a typical webcam,
-DirectShow delivers only about 8 fps, MSMF about 24.
+Opens the camera via Media Foundation on Windows. On the test laptop, DirectShow gave only about
+8 fps and MSMF about 24.
 
-### Optional: Claude as a second opinion
+## Why the first version performed badly live, and what changed
 
-The OpenCV, MediaPipe and Transformer pipeline is always the real-time classifier. If you add a
-Claude API key, each recognised sign is also double-checked by Claude (vision). Claude receives
-6 keyframes of your clip plus labelled keyframe sheets of the 25 reference videos, and picks the
-matching sign from the closed list (or "none"). The UI shows **CLAUDE AGREES / CLAUDE DIFFERS**
-under the prediction, and the **Ask Claude** button checks the current clip on demand.
-
-```powershell
-copy .env.example .env                         # then paste your key after ANTHROPIC_API_KEY=
-python scripts/build_reference_sheets.py       # once; needs the videos in data/raw/
-python run_server.py
-```
-
-- Uses `claude-opus-5-5` at low effort with structured JSON output. Server-side refusal fallback
-  is on. The 25 reference sheets are prompt-cached, so repeat calls cost little and run faster.
-  Expect a few seconds per check. It runs in the background and never blocks the live view.
-- **Privacy:** when a key is configured, 6 keyframes of the webcam clip are sent to the Anthropic
-  API for each check. Without a key, nothing leaves the machine.
-- `.env` and `data/reference_sheets/` (which contain the reference signer's image) are git-ignored.
-
-Verification scripts:
-
-```powershell
-python -m pytest tests                # unit tests
-python scripts/replay_test.py         # replays the 25 reference videos through the live predictor
-python scripts/replay_test.py --fps 10   # same, simulating a 10 fps camera
-python scripts/ui_check.py            # server + WebSocket + headless Chromium screenshots
-                                      # (first run: python -m playwright install chromium)
-```
+| Problem (v1) | Fix (v2) |
+|---|---|
+| Hands near a laptop webcam look about 3× larger than in the full-body reference videos (palm ≈ 5.6% vs ~15–20% of frame height). v1 used raw wrist-relative coordinates. | Hand shape **divided by palm length**: scale-free |
+| v1 knew nothing about *where* the hands are (face, chest…), which many signs depend on | **MediaPipe Pose**: wrist position relative to the shoulder centre (in shoulder widths), nose position, palm/shoulder ratio |
+| Left/right came from MediaPipe's handedness classifier, which is unreliable on raw frames | Signer's left/right assigned by the **nearest pose wrist** |
+| x and y were scaled differently (3:2 videos vs 4:3 webcams) | **Aspect-corrected** coordinates |
+| The buffer counted frames: at 10 fps a sign looked 3× faster | **Time-based** buffer (any camera fps gives the same input) |
+| Live hand detection (0.5) differed from extraction (0.3) | Same confidence in both paths |
+| Training only saw full-body framing | Training also uses **simulated close-webcam crops** (zoom 1.3/1.6/2.1) of the reference videos |
+| One signer only | **Record & Train** adds your own takes. Real accuracy is measured on held-out takes and in Self-test |
 
 ## Results
 
-Measured on a Windows 11 laptop CPU (2026-10-13).
+Measured on a Windows 11 laptop CPU (2026-10-13). "Replay" pushes each reference video frame by
+frame through the exact live path (MediaPipe → time-based buffer → model → smoothing → decision
+logic), with 1 s of rest before and 1.5 s after.
 
-| Check | Result |
-|---|---|
-| Landmark extraction | **25/25 signs**. Hands detected in 88–100% of signing frames: 23 signs at ≥97%, ほとんど 97%, ゴルフ 88% (the hands overlap). See `data/extraction_report.json` |
-| Training | Early-stopped at epoch 51 in about 8 min on CPU |
-| Validation (held-out seeds/speeds, **optimistic**) | top-1 **99.9%**, top-3 **100%**, per-class F1 ≥ 0.99 (`models/train_report.json`, `models/confusion.png`) |
-| ONNX parity | max \|torch − onnx\| = 2.9e-6 (< 1e-4) ✔ |
-| **Replay test** (25 reference videos through the live predictor, frame by frame) | **25/25** correct, with **0** wrong or duplicate emissions (`models/replay_report.json`) |
-| Idle behaviour | An empty or black camera never emits a sign (pytest + UI check) |
-| Replay at a simulated 15 fps and 10 fps camera | **25/25** and **25/25**. The earlier frame-count buffer scored 11/25 at 10 fps |
-| Unit tests | 25 passed |
-| Real webcam (camera 0, 640×480) | Opens and runs end to end at 23–24 fps on MSMF (processing alone: about 42 fps) |
-| UI check (headless Chromium, fake camera, 1920×960 and 1280×720) | No console errors, no page overflow, WebSocket connected, about 15–16 processed frames/s |
+| Check | v1 (hands only) | **v2 (current)** |
+|---|---|---|
+| Replay, original full-body videos, 30 fps | 25/25 | **25/25**, no wrong or duplicate emissions |
+| Replay at a simulated 15 fps camera | 25/25 | **25/25** |
+| Replay at a simulated 10 fps camera | 11/25 (frame-count buffer) | **25/25** (time-based buffer) |
+| **Replay as a close laptop webcam (zoom 1.8, never trained on)** | **10/25** | **25/25** |
+| Replay, even closer (zoom 2.4, beyond training range) | – | 24/25 (スキー missed) |
+| Synthetic validation (held-out augmentation; **optimistic**) | 99.9% | 99.9% top-1, 100% top-3 |
+| Real validation on your held-out takes | – | appears after you record ≥ 3 takes per sign |
+| Extraction | – | 25/25 signs; hands in 88–100% of frames, shoulders in 100% |
+| ONNX parity | 2.9e-6 | 1.9e-6 (< 1e-4) |
+| Unit tests | 25 | **32 passed** |
+| UI check (headless Chromium, fake camera, 5 pages × 1920×960 and 1280×720) | – | no console errors, no page overflow, about 16 processed fps |
 
-What the replay test measures: each video is replayed as if live, with 1 s of rest before it,
-then the signing, then 1.5 s of rest after, all through MediaPipe, the 96-frame buffer, EMA
-smoothing and the decision logic. It shows that the training and live pipelines are
-consistent. It does **not** show generalisation to new signers, because these are the training
-recordings.
-
-**Fix found by the replay test:** the first model scored 22/25, but 4 signs had a wrong sign
-emitted first. The wrong emission always came 30–40 frames into the sign, when only the opening of
-the sign was in the buffer. Training had never seen a half-finished sign, so the model guessed
-with confidence. Adding partial-sign windows (opening ≤ 50% or tail ≤ 30% of a sign) as *idle*
-fixed this without loosening any threshold. Result: 25/25 with no spurious emissions.
-
-![Validation confusion](models/confusion.png)
+The zoom tests crop each reference video to a 4:3 upper-body view resized to 640×480, as if sitting
+close to a laptop webcam (`python scripts/replay_test.py --zoom 1.8`). They show robustness to
+framing and hand size. They do **not** show generalisation to other signers; only your own
+recordings and the Self-test page measure that.
 
 ## Architecture
 
 ```
- Browser (frontend/index.html)                     Python server (FastAPI, run_server.py)
- ┌───────────────────────────────┐   WS /ws        ┌───────────────────────────────────────────────┐
- │ getUserMedia 640x480          │ ─────────────►  │ decode JPEG (latest frame only, drop stale)   │
- │ canvas -> JPEG (<=18 fps,     │ {"type":"frame",│        │                                      │
- │  waits for previous reply)    │  "data":b64}    │        ▼                                      │
- │                               │                 │ MediaPipe Hands (2 hands, conf 0.5)           │
- │ annotated frame (CSS mirror)  │                 │        │  src/common/features.py (shared with │
- │ prediction / top-3 / history  │ ◄─────────────  │        ▼  extraction): 126-d, L|R slots,      │
- │ glove heat maps + IMU chart   │   payload JSON  │   wrist-relative, missing hand = 0            │
- │  [SIMULATED SENSOR FEED]      │                 │ timestamped buffer: last 3.2 s interpolated   │
- └───────────────────────────────┘                 │ at 60 instants (any camera fps), every 0.1 s  │
-                                                   │        ▼                                      │
-                                                   │ ONNX Transformer ─► softmax ─► EMA(α=0.4)     │
-                                                   │        ▼                                      │
-                                                   │ decision: not idle, conf>=0.60, 5 stable      │
-                                                   │ predictions, 1.5 s cooldown, re-arm on change │
-                                                   │ on emit / "Ask Claude": 6 keyframes + 25      │
-                                                   │ cached reference sheets ─► Claude (optional)  │
-                                                   │ SimulatedGlove (GloveSource) ─► UI only       │
-                                                   └───────────────────────────────────────────────┘
+ Browser dashboard (frontend/*.html, no build)       Python server (FastAPI, run_server.py)
+ ┌────────────────────────────────────┐   WS /ws     ┌──────────────────────────────────────────────────┐
+ │ getUserMedia → canvas JPEG          │ ──────────► │ decode (latest frame only, drop stale)            │
+ │ (≤ send_fps, waits for each reply)  │             │ MediaPipe Hands (conf 0.3) + Pose (every 2nd fr.) │
+ │                                     │             │ src/common/features.py (shared with extraction):  │
+ │ Live · Record & Train · Self-test   │             │  136-d = 2×63 scale-free hand shapes              │
+ │ History · Settings                  │ ◄────────── │        + wrist/nose positions in shoulder widths  │
+ └────────────────────────────────────┘  payload     │        + presence flags                           │
+          │ REST /api/*                               │ time-based buffer: last 3.2 s → 60 instants       │
+          ▼                                           │ ONNX Transformer → softmax → EMA → decision       │
+ settings.json · .env (key) · app.db (SQLite:         │  (threshold / stability / cooldown from Settings) │
+ history + self-tests) · data/user/<profile>/ takes   │ emit → history DB → optional Claude check         │
+ · background training process → hot model reload     │ record_start → 30 fps take → data/user/…          │
+                                                      └──────────────────────────────────────────────────┘
 ```
 
-Model: Linear(126→128) → [CLS] + sinusoidal positions (61) → 2 × Pre-LN Transformer encoder
-layers (4 heads, FFN 256, GELU, dropout 0.2) → LayerNorm → Linear(128→26). The 26th class is
-**idle** ("—"), so the system stays quiet when nobody is signing.
+Model: Linear(136→128) → [CLS] + sinusoidal positions → 2 × Pre-LN Transformer encoder layers
+(4 heads, FFN 256, GELU, dropout 0.2) → LayerNorm → Linear(128→26). Class 26 is **idle**, so the
+system stays quiet when nobody is signing.
 
-### Train/inference temporal consistency
+### Training data and train/live consistency
 
-The live system classifies the last 3.2 s of hand motion, sampled at 60 evenly spaced instants.
-The buffer is **time-based**: frames carry timestamps and are interpolated onto the 30 fps
-timeline used in training, so a 10, 15 or 30 fps camera all produce the same input. (A plain
-"last 96 frames" buffer would cover 9.6 s at 10 fps and make every sign look three times faster.)
-Training builds samples the same way rather than squashing each whole video to 60 frames:
+Each sample mimics the live buffer:
 
-1. Take the sign's full 30 fps sequence (rest → sign → rest) and speed-warp it (×0.7–1.4).
-2. Slide a 96-frame window over it so that at least 80% of the active sign ("core", found
-   automatically from distance to the rest pose) is inside. Positions outside the recording are
-   filled with zeros (hands out of view) or a held rest pose. 30% of the time the surrounding rest
-   frames are also zeroed.
-3. Augment: mirror (swap hands and negate x), scale 0.85–1.15, rotation ±10°, per-hand frame
-   dropout, Gaussian noise σ=0.005 on visible hands.
-4. Resample 96 → 60 frames with the same function the live predictor uses.
+1. Take a full 30 fps sequence (rest → sign → rest): a reference video, a simulated
+   close-webcam crop of it, or one of your takes (your takes make up 70% of a sign's samples when present).
+2. Speed-warp it (×0.7–1.4).
+3. Cut a 3.2 s window containing ≥ 80% of the active sign. Pad outside the recording with zeros or a held rest pose.
+4. Augment: mirror (swap hands and negate x), body scale 0.85–1.15, position shift ±0.12, rotation ±10°,
+   hand dropout, occasional pose dropout, noise.
+5. Resample to 60 steps.
 
-Idle samples cover an empty buffer, the signer's resting pose (stretched), hands entering or
-leaving the view, and **partial signs**: the first ≤50% of a sign at the newest end of the buffer,
-or the last ≤30% at the oldest end. This makes the model wait until a sign is mostly visible.
-Each epoch draws 96 new samples per sign plus 288 idle samples.
-
-**Validation** uses a held-out RNG seed and speed bands (0.85–0.90, 1.20–1.25) that training
-never samples. It is still the same 25 recordings, so **val accuracy is optimistic**.
+**Idle** samples cover empty frames, rest poses, hands entering or leaving the view, and
+*partial signs* (the first ≤ 50% or last ≤ 30% of a sign), so the model waits until a sign is mostly
+visible. Live, the same timeline is rebuilt from timestamps at any frame rate.
 
 ## Repository layout
 
 ```
 data/label_map.json, signs_english.json   class ids -> Japanese -> English
-data/raw/                                 videos go here (git-ignored)
-scripts/extract_landmarks.py              videos -> landmark .npy files + extraction_report.json
-scripts/replay_test.py                    live-path replay of the 25 reference videos
-scripts/ui_check.py                       end-to-end server/UI check with screenshots
+data/raw/                                 reference videos (git-ignored)
+data/user/<profile>/<sign>/               your recorded takes (git-ignored)
+scripts/extract_landmarks.py              videos -> features (+ --zooms webcam crops)
+scripts/build_reference_sheets.py         reference keyframe sheets (Record page + Claude)
+scripts/replay_test.py                    live-path replay (--fps, --zoom)
+scripts/ui_check.py                       server + WebSocket + 5-page browser check with screenshots
 scripts/webcam_demo.py                    standalone OpenCV webcam app
-scripts/build_reference_sheets.py         reference keyframe sheets for the Claude second opinion
-src/common/                               config + shared feature extraction
+src/common/                               config, shared features (hands + pose), simulated views
 src/train/                                dataset/augmentation, model, training loop, ONNX export
 src/inference/                            predictor, Claude verifier, simulated glove, FastAPI server
-frontend/index.html                       single-file UI (no build step)
+src/app/                                  settings, SQLite store, recordings, background trainer, REST API
+frontend/                                 dashboard pages + static/{app.css, common.js, camera.js}
 models/                                   jsl_model.onnx, meta.json, reports, confusion.png
 hardware/glove_design/                    tactile glove embroidery files (.pes)
-tests/                                    pytest suite
+tests/                                    pytest suite (32 tests)
 ```
 
 ## Known limitations
 
-- **One signer, one example per sign.** The model has only seen one person's hands, body
-  proportions and signing speed. Expect lower accuracy for other people, other camera angles and
-  lighting. Validation numbers are optimistic. Judge the system by live testing.
-- **Handedness.** MediaPipe's left/right labels on unmirrored frames are what the model was
-  trained on. Mirror augmentation helps left-handed signers, but signs that differ only by
-  handedness may be confused.
-- **Overlapping hands.** Signs where the hands touch or overlap (e.g. ゴルフ) lose detections.
-  Extraction reaches 88% frame coverage for ゴルフ; live detection at confidence 0.5 is lower.
-- **Isolated signs only.** The buffer holds one sign. Rest briefly (lower your hands) between
-  signs. Continuous sentence recognition is out of scope.
-- **Simulated glove panel.** The heat maps and IMU trace come from `SimulatedGlove`. They react
-  loosely to hand openness and motion so the demo looks plausible, but they are **not real sensor
-  data** and the classifier never uses them.
+- **Generalisation to new signers is unmeasured until you record.** Replay results use the
+  reference videos (one signer). Use Record & Train and Self-test for real numbers.
+- **Framing:** the head, shoulders and both hands should be visible. Without shoulders, position
+  features are missing and accuracy drops (the UI warns: "Shoulders not visible").
+- **Overlapping hands** (e.g. ゴルフ) lose MediaPipe detections. Very close framing (zoom ≥ 2.4)
+  starts to miss signs.
+- **Isolated signs only.** Lower your hands briefly between signs.
+- **Glove panel** (off by default) is a simulation. The classifier never uses it.
 
 ## Plugging in a real glove
 
-Implement `GloveSource` in `src/inference/glove_sim.py`:
-
-```python
-from src.inference.glove_sim import GloveSource
-
-class SerialGlove(GloveSource):
-    def read(self, landmarks=None) -> dict:
-        # 50 pressure values in 0..1 per hand (5 x 10 grid, row-major) and 6 IMU values
-        return {"left":  {"pressure": [...50 floats], "imu": [ax, ay, az, gx, gy, gz]},
-                "right": {"pressure": [...], "imu": [...]},
-                "simulated": False}
-```
-
-Pass it to the predictor (`JSLPredictor(glove=SerialGlove())` in `src/inference/server.py`),
-and remove the "SIMULATED" badges in `frontend/index.html`. To use glove data for
-classification you would also need to add it to the feature vector and retrain.
+Implement `GloveSource.read()` in `src/inference/glove_sim.py` (50 pressure values and 6 IMU values per
+hand), pass it to `JSLPredictor(glove=...)`, and enable the panel in Settings → Display. To use
+glove data for *recognition*, add it to the feature vector and retrain.
 
 ## Adding more signs
 
-1. Add the videos (file name = Japanese sign name, e.g. `こんにちは.mp4`) to `data/raw/`.
-2. Add entries to `data/label_map.json` (`"25": "こんにちは"`) and `data/signs_english.json`.
-3. Update `NUM_SIGNS` in `src/common/config.py`. The idle class is always the last index.
-4. `python scripts/extract_landmarks.py`, then `python run_training.py`.
-
-More recordings per sign, ideally from different signers, will improve real-world accuracy far
-more than further model changes.
+Add the videos (file name = sign name) to `data/raw/`, add entries to `data/label_map.json` and
+`data/signs_english.json`, update `NUM_SIGNS` in `src/common/config.py`, then re-run extraction,
+the reference sheets and training.

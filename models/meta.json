@@ -36,7 +36,7 @@
     "shape": [
       "B",
       60,
-      126
+      136
     ],
     "dtype": "float32"
   },
@@ -48,24 +48,44 @@
     ]
   },
   "feature_layout": {
-    "dim": 126,
-    "slots": {
-      "left": [
+    "version": 2,
+    "dim": 136,
+    "blocks": {
+      "shape_left": [
         0,
         63
       ],
-      "right": [
+      "shape_right": [
         63,
         126
+      ],
+      "pos_left": [
+        126,
+        129
+      ],
+      "pos_right": [
+        129,
+        132
+      ],
+      "nose": [
+        132,
+        134
+      ],
+      "present": [
+        134,
+        136
       ]
     },
-    "per_hand": "21 MediaPipe keypoints x (x, y, z), each minus the wrist keypoint",
-    "missing_hand": "zeros",
+    "shape": "21 keypoints x (x, y, z), wrist-relative, divided by palm length (wrist->middle MCP)",
+    "position": "wrist (x, y) relative to shoulder centre / shoulder width, plus palm / shoulder width",
+    "left_right": "signer's own left/right (nearest MediaPipe Pose wrist)",
+    "aspect_corrected": true,
     "mirrored_input": false,
-    "temporal": "last 96 frames (front zero-padded) linearly resampled to 60"
+    "temporal": "last 96 frames at 30 fps (time-based) linearly resampled to 60"
   },
-  "val_metrics_optimistic": {
-    "val_top1": 0.9991071428571429,
-    "val_top3": 1.0
+  "metrics": {
+    "synthetic_val_top1": 0.9991071428571429,
+    "real_val_top1": null,
+    "user_recordings": 0
   }
 }

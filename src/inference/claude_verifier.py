@@ -21,7 +21,9 @@ import numpy as np
 
 from src.common.config import DATA, ROOT, class_names, load_english
 
-MODEL = "claude-opus-5-5"
+DEFAULT_MODEL = "claude-haiku-5-5"
+# Server-side refusal fallback ("default" routing) is available for these models on the Claude API.
+FALLBACK_MODELS = {"claude-opus-5-5", "claude-sonnet-5-5"}
 REF_DIR = DATA / "reference_sheets"
 SHEET_FRAMES = 6
 CELL_H = 240                       # cell width follows each source's aspect ratio
@@ -62,16 +64,58 @@ def _image_block(jpeg: bytes) -> dict:
 class ClaudeVerifier:
     """Thread-safe-enough (stateless per call) wrapper around the Messages API."""
 
-    def __init__(self) -> None:
+    def __init__(self, model: str = DEFAULT_MODEL) -> None:
         load_dotenv()
         self.names = class_names()[:-1]
         self.english = load_english()
-        self.available = bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
+        self.model = model
         self.client = None
-        if self.available:
-            import anthropic
-            self.client = anthropic.Anthropic(max_retries=1, timeout=60.0)
+        self._key = None
         self.references = self._reference_blocks()
+
+    @property
+    def available(self) -> bool:
+        return bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
+
+    def _get_client(self):
+        """(Re)create the client when the key changes (it can be set from the Settings page)."""
+        key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
+        if self.client is None or key != self._key:
+            import anthropic
+            self.client, self._key = anthropic.Anthropic(max_retries=1, timeout=60.0), key
+        return self.client
+
+    def _request_kwargs(self, model: str) -> dict:
+        """Per-model options: Haiku runs without thinking for speed; Opus/Sonnet get refusal fallback."""
+        kw: dict = {}
+        if model == "claude-haiku-5-5":
+            kw["thinking"] = {"type": "disabled"}          # allowed on Haiku 5.5 at effort <= high
+        if model in FALLBACK_MODELS:
+            kw["betas"] = ["server-side-fallback-2026-07-01"]
+            kw["fallbacks"] = "default"
+        return kw
+
+    def test(self, model: str | None = None) -> dict:
+        """Tiny request to check the key and model. Returns {ok, latency_s, error?}."""
+        if not self.available:
+            return {"ok": False, "error": "No API key set"}
+        import anthropic
+        model = model or self.model
+        t0 = time.time()
+        try:
+            kw = self._request_kwargs(model)
+            api = self._get_client().beta.messages if "betas" in kw else self._get_client().messages
+            api.create(model=model, max_tokens=16, output_config={"effort": "low"},
+                       messages=[{"role": "user", "content": "Reply with OK."}], **kw)
+        except anthropic.AuthenticationError:
+            return {"ok": False, "error": "Invalid API key"}
+        except anthropic.NotFoundError:
+            return {"ok": False, "error": f"Model {model} not available for this key"}
+        except anthropic.APIStatusError as e:
+            return {"ok": False, "error": f"API error {e.status_code}: {e.message}"}
+        except anthropic.APIConnectionError:
+            return {"ok": False, "error": "Network error - check your internet connection"}
+        return {"ok": True, "latency_s": round(time.time() - t0, 2), "model": model}
 
     def _reference_blocks(self) -> list[dict]:
         blocks: list[dict] = []
@@ -85,12 +129,13 @@ class ClaudeVerifier:
         return blocks
 
     def status(self) -> dict:
-        return {"available": self.available, "model": MODEL, "references": len(self.references) // 2}
+        return {"available": self.available, "model": self.model, "references": len(self.references) // 2}
 
-    def verify(self, frames: list[np.ndarray], local_top3: list[dict] | None = None) -> dict:
+    def verify(self, frames: list[np.ndarray], local_top3: list[dict] | None = None,
+               model: str | None = None) -> dict:
         """Ask Claude which of the 25 signs the clip shows. Returns a JSON-serialisable dict."""
         if not self.available:
-            return {"status": "unavailable", "error": "No ANTHROPIC_API_KEY configured"}
+            return {"status": "unavailable", "error": "No API key set (Settings page)"}
         if len(frames) < SHEET_FRAMES:
             return {"status": "error", "error": "Not enough frames buffered yet"}
         import anthropic
@@ -111,13 +156,16 @@ class ClaudeVerifier:
         content = [{"type": "text", "text": intro}, *self.references,
                    {"type": "text", "text": "Live clip:"}, _image_block(make_sheet(frames)),
                    {"type": "text", "text": question}]
+        model = model or self.model
+        kw = self._request_kwargs(model)
         t0 = time.time()
         try:
-            resp = self.client.beta.messages.create(
-                model=MODEL, max_tokens=4000,
-                betas=["server-side-fallback-2026-07-01"], fallbacks="default",
+            client = self._get_client()
+            api = client.beta.messages if "betas" in kw else client.messages
+            resp = api.create(
+                model=model, max_tokens=2000,
                 output_config={"effort": "low", "format": {"type": "json_schema", "schema": schema}},
-                messages=[{"role": "user", "content": content}])
+                messages=[{"role": "user", "content": content}], **kw)
         except anthropic.AuthenticationError:
             return {"status": "error", "error": "Invalid ANTHROPIC_API_KEY"}
         except anthropic.RateLimitError:
@@ -135,6 +183,6 @@ class ClaudeVerifier:
         except json.JSONDecodeError:
             return {"status": "error", "error": "Unparseable response", "latency_s": latency}
         sign = None if data["sign"] == "none" else data["sign"]
-        return {"status": "done", "sign": sign, "english": self.english.get(sign, "") if sign else "",
+        return {"status": "done", "model": model, "sign": sign, "english": self.english.get(sign, "") if sign else "",
                 "confidence": data["confidence"], "reason": data["reason"], "latency_s": latency,
                 "cache_read_tokens": getattr(resp.usage, "cache_read_input_tokens", 0) or 0}

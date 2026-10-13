@@ -98,7 +98,7 @@ def test_decision_logic_streak_cooldown_rearm():
     try:
         pred.session.cls = 3
         assert feed(P.MIN_FILL - 1) == []                   # not enough buffer yet
-        first = feed(P.PREDICT_EVERY * P.STREAK_NEEDED + 3)
+        first = feed(P.PREDICT_EVERY * pred.params.streak + 3)
         assert first == [pred.names[3]]                     # emitted once after the streak
         assert feed(90) == []                               # held sign never re-emits
         pred.session.cls = IDLE_INDEX

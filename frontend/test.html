@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+<style>
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.prompt{text-align:center;padding:10px 0}
+.prompt .k{font-family:var(--jp);font-size:72px;font-weight:700;line-height:1.1}
+.prompt .e{font-size:18px;color:var(--muted)}
+.prompt .phase{margin-top:8px;font-weight:600;min-height:22px}
+.verdict{font-size:20px;font-weight:700;min-height:30px;text-align:center}
+.verdict.ok{color:var(--ok)}.verdict.bad{color:var(--bad)}.verdict.none{color:var(--warn)}
+.ref img{width:100%;border-radius:8px;border:1px solid var(--border)}
+td.acc{font-weight:700}
+@media (max-width:1100px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="cols">
+    <div class="grid">
+      <section class="card">
+        <h2>Self-test<span class="sp"></span><span class="chip" id="progress">not started</span></h2>
+        <div class="stage">
+          <video autoplay muted playsinline></video><img alt="">
+          <div class="overlay cam show"><div class="spin"></div><strong>Starting camera…</strong><span>Allow camera access.</span></div>
+          <div class="overlay recon"><div class="spin"></div><strong>Reconnecting…</strong><span></span></div>
+          <div class="overlay" id="cd"><div class="countdown" id="cdNum">3</div><strong>Hands down - get ready</strong></div>
+        </div>
+        <div class="bar" style="margin-top:8px"><i id="timeFill"></i></div>
+        <div class="prompt"><div class="k" id="tSign">—</div><div class="e" id="tEng">Press Start. Each sign is shown once in random order.</div>
+          <div class="phase" id="phase"></div></div>
+        <div class="verdict" id="verdict"></div>
+        <div class="row" style="justify-content:center;margin-top:8px">
+          <button class="btn primary big" id="startBtn" disabled>Start test</button>
+          <button class="btn" id="skipBtn" disabled>Skip</button>
+          <button class="btn danger" id="stopBtn" disabled>Stop</button>
+        </div>
+      </section>
+      <section class="card ref" id="refCard" style="display:none"><h2>Hint: reference keyframes</h2><img id="refImg" alt=""></section>
+    </div>
+    <div class="grid">
+      <div class="stats" id="stats"></div>
+      <section class="card"><h2>Per sign (all runs)<span class="sp"></span><a class="btn sm" href="/api/tests.csv">Export CSV</a>
+        <button class="btn sm danger" id="clearBtn">Clear</button></h2>
+        <div class="tablewrap"><table><thead><tr><th>Sign</th><th>Tries</th><th>Accuracy</th><th>Most often recognised as</th></tr></thead><tbody id="perSign"></tbody></table></div></section>
+      <section class="card"><h2>Runs</h2><div class="tablewrap" style="max-height:220px"><table><thead><tr><th>Started</th><th>Signs</th><th>Accuracy</th><th>Avg time</th></tr></thead><tbody id="runs"></tbody></table></div></section>
+    </div>
+  </div>
+</div>
+<script src="/static/common.js"></script>
+<script src="/static/camera.js"></script>
+<script>
+(async () => {
+  const $ = id => document.getElementById(id);
+  JSL.nav(`<span class="chip"><span class="dot" id="wsDot"></span>WS <b id="wsTxt">…</b></span>`);
+  const S = (await JSL.settings()).settings;
+  const signs = (await JSL.api("/api/signs")).signs;
+  if (S.test.show_reference) $("refCard").style.display = "";
+  let queue = [], cur = null, phase = "idle", run = "", tStart = 0, timer = null, results = [];
+
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function start() {
+    run = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const n = S.test.rounds; queue = [];
+    while (queue.length < n) queue.push(...shuffle(signs.slice()));
+    queue = queue.slice(0, n); results = [];
+    $("startBtn").disabled = true; $("skipBtn").disabled = false; $("stopBtn").disabled = false;
+    next();
+  }
+  function next() {
+    clearTimeout(timer);
+    if (!queue.length) return finish();
+    cur = queue.shift(); phase = "countdown";
+    $("tSign").textContent = cur.sign; $("tEng").textContent = cur.english; $("verdict").textContent = ""; $("verdict").className = "verdict";
+    $("progress").textContent = `${results.length + 1} / ${results.length + queue.length + 1}`;
+    if (S.test.show_reference && cur.reference) $("refImg").src = `/api/reference/${cur.id}.jpg`;
+    let n = 3; $("cd").classList.add("show");
+    const tick = () => {
+      if (phase !== "countdown") return;
+      if (n === 0) { $("cd").classList.remove("show"); cam.send({ type: "reset" }); phase = "signing"; tStart = performance.now(); $("phase").textContent = "Sign now!"; animate(); timer = setTimeout(() => decide(null, null), S.test.timeout_s * 1000); return; }
+      $("cdNum").textContent = n--; timer = setTimeout(tick, 1000);
+    };
+    tick();
+  }
+  function animate() { if (phase !== "signing") { $("timeFill").style.width = "0"; return; } $("timeFill").style.width = Math.min(100, (performance.now() - tStart) / (S.test.timeout_s * 10)) + "%"; requestAnimationFrame(animate); }
+  async function decide(pred, conf) {
+    if (phase !== "signing") return;
+    phase = "feedback"; clearTimeout(timer); $("phase").textContent = "";
+    const latency = pred ? (performance.now() - tStart) / 1000 : null;
+    const ok = pred === cur.sign;
+    $("verdict").className = "verdict " + (ok ? "ok" : pred ? "bad" : "none");
+    $("verdict").textContent = ok ? `✓ Correct (${latency.toFixed(1)} s)` : pred ? `✗ Recognised as ${pred}` : "No sign recognised in time";
+    results.push({ ok, pred });
+    await JSL.api("/api/tests", { method: "POST", body: { run, target: cur.sign, predicted: pred, latency_s: latency, confidence: conf } });
+    loadStats();
+    timer = setTimeout(next, 1500);
+  }
+  function finish() {
+    phase = "idle"; cur = null;
+    const c = results.filter(r => r.ok).length;
+    $("tSign").textContent = `${c} / ${results.length}`; $("tEng").textContent = `Run finished - ${JSL.pct(c / Math.max(1, results.length))} correct`;
+    $("startBtn").disabled = false; $("skipBtn").disabled = true; $("stopBtn").disabled = true; $("progress").textContent = "done";
+  }
+  async function loadStats() {
+    const t = await JSL.api("/api/tests");
+    const last = t.runs[0];
+    $("stats").innerHTML = `<div class="stat"><div class="v">${JSL.pct(t.accuracy)}</div><div class="k">Overall accuracy</div></div>
+      <div class="stat"><div class="v">${t.n}</div><div class="k">Signs tested</div></div>
+      <div class="stat"><div class="v">${last ? JSL.pct(last.correct / last.n) : "—"}</div><div class="k">Latest run</div></div>`;
+    $("perSign").innerHTML = signs.map(s => {
+      const p = t.per_sign[s.sign] || { n: 0, correct: 0 };
+      const conf = Object.entries(t.confusion[s.sign] || {}).filter(([k]) => k !== s.sign).sort((a, b) => b[1] - a[1])[0];
+      const acc = p.n ? p.correct / p.n : null;
+      const col = acc == null ? "" : acc >= .8 ? "var(--ok)" : acc >= .5 ? "var(--warn)" : "var(--bad)";
+      return `<tr><td class="jp">${JSL.esc(s.sign)} <span class="muted small">${JSL.esc(s.english)}</span></td><td>${p.n}</td>
+        <td class="acc" style="color:${col}">${JSL.pct(acc)}</td><td class="jp small">${conf ? `${JSL.esc(conf[0])} ×${conf[1]}` : ""}</td></tr>`;
+    }).join("");
+    $("runs").innerHTML = t.runs.map(r => `<tr><td>${JSL.time(r.started)}</td><td>${r.n}</td><td>${JSL.pct(r.correct / r.n)}</td><td>${r.latency ? r.latency.toFixed(1) + " s" : "—"}</td></tr>`).join("");
+  }
+
+  const cam = new LiveCamera({ stage: document.querySelector(".stage"), page: "test",
+    onStatus: s => { $("wsTxt").textContent = s.ws; $("wsDot").className = "dot " + (s.ws === "connected" ? "ok" : "warn"); if (phase === "idle") $("startBtn").disabled = s.ws !== "connected"; },
+    onResult: msg => { if (msg.type === "result" && msg.emitted && phase === "signing") decide(msg.emitted, msg.prediction.confidence); } });
+  $("startBtn").onclick = start;
+  $("skipBtn").onclick = () => { if (phase === "signing") decide(null, null); else if (phase === "countdown") { phase = "x"; $("cd").classList.remove("show"); next(); } };
+  $("stopBtn").onclick = () => { clearTimeout(timer); phase = "idle"; $("cd").classList.remove("show"); queue = []; finish(); };
+  $("clearBtn").onclick = async () => { if (confirm("Delete all self-test results?")) { await JSL.api("/api/tests", { method: "DELETE" }); loadStats(); } };
+  loadStats(); cam.start();
+})();
+</script>
+</body>
+</html>

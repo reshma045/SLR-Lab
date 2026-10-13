@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+<style>
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.val{font-variant-numeric:tabular-nums;font-weight:600;min-width:52px;display:inline-block}
+.keybox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.preview{width:100%;max-width:320px;border-radius:8px;background:#05080c;aspect-ratio:4/3;object-fit:cover}
+.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+@media (max-width:1100px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="cols">
+    <div class="grid">
+      <section class="card"><h2>Claude second opinion</h2>
+        <label class="field"><span>API key<span class="hint">Stored only on this computer (.env, git-ignored).</span></span>
+          <span class="keybox"><input type="password" id="key" placeholder="sk-ant-…" autocomplete="off" style="max-width:260px">
+            <button class="btn sm primary" id="saveKey">Save key</button><button class="btn sm" id="delKey">Remove</button>
+            <span class="small muted" id="keyState"></span></span></label>
+        <label class="field"><span>Model</span><span class="row"><select data-key="claude.model" id="model"></select>
+          <button class="btn sm" id="testBtn">Test connection</button><span class="small" id="testRes"></span></span></label>
+        <label class="field"><span>Enabled</span><input type="checkbox" data-key="claude.enabled"></label>
+        <label class="field"><span>When to ask Claude</span><select data-key="claude.mode">
+          <option value="auto">Every recognised sign</option><option value="uncertain">Only when the local model is unsure</option>
+          <option value="manual">Only when I press “Ask Claude”</option></select></label>
+        <label class="field"><span>“Unsure” means below<span class="hint">Used by “only when unsure”.</span></span>
+          <span class="row"><input type="range" min="0.3" max="1" step="0.05" data-key="claude.uncertain_below"><span class="val" data-show="claude.uncertain_below" data-fmt="pct"></span></span></label>
+        <p class="note">Claude receives 6 keyframes of your clip (with hand skeletons) plus 25 labelled reference sheets (prompt-cached), and picks
+          one of the 25 signs or “none”. It runs in the background - the live view never waits. <b>Privacy:</b> those keyframes are sent to the
+          Anthropic API only while a key is set and Claude is enabled. Haiku 5.5 is the fastest and cheapest option for real-time use.</p>
+      </section>
+      <section class="card"><h2>Recognition</h2>
+        <label class="field"><span>Confidence threshold<span class="hint">Show/emit a sign only above this.</span></span>
+          <span class="row"><input type="range" min="0.2" max="0.95" step="0.05" data-key="recognition.conf_threshold"><span class="val" data-show="recognition.conf_threshold" data-fmt="pct"></span></span></label>
+        <label class="field"><span>Stability<span class="hint">Same sign on top for N predictions (0.1 s each).</span></span>
+          <span class="row"><input type="range" min="1" max="15" step="1" data-key="recognition.streak"><span class="val" data-show="recognition.streak"></span></span></label>
+        <label class="field"><span>Cooldown (s)<span class="hint">Minimum gap between recognised signs.</span></span>
+          <span class="row"><input type="range" min="0" max="5" step="0.25" data-key="recognition.cooldown_s"><span class="val" data-show="recognition.cooldown_s"></span></span></label>
+        <label class="field"><span>Smoothing<span class="hint">Lower = steadier but slower to react.</span></span>
+          <span class="row"><input type="range" min="0.1" max="1" step="0.05" data-key="recognition.ema_alpha"><span class="val" data-show="recognition.ema_alpha"></span></span></label>
+        <div class="row" style="margin-top:8px"><button class="btn sm" id="resetRec">Reset to defaults</button></div>
+      </section>
+      <section class="card"><h2>System</h2><div id="sys" class="small"></div></section>
+    </div>
+    <div class="grid">
+      <section class="card"><h2>Camera</h2>
+        <label class="field"><span>Camera</span><span class="row"><select id="camSel"></select></span></label>
+        <label class="field"><span>Preview</span><video id="prev" class="preview" autoplay muted playsinline></video></label>
+        <label class="field"><span>Frames sent per second<span class="hint">Lower if the server can't keep up.</span></span>
+          <span class="row"><input type="range" min="5" max="30" step="1" data-key="camera.send_fps"><span class="val" data-show="camera.send_fps"></span></span></label>
+        <label class="field"><span>JPEG quality</span><span class="row"><input type="range" min="0.3" max="0.95" step="0.05" data-key="camera.jpeg_quality"><span class="val" data-show="camera.jpeg_quality" data-fmt="pct"></span></span></label>
+        <label class="field"><span>Mirror view<span class="hint">Display only - recognition never uses mirrored frames.</span></span><input type="checkbox" data-key="camera.mirror"></label>
+      </section>
+      <section class="card"><h2>Recording &amp; training</h2>
+        <label class="field"><span>Profile<span class="hint">Your recordings are stored per profile (e.g. one per signer).</span></span>
+          <span class="row"><input type="text" data-key="profile" list="profiles" style="max-width:200px"><datalist id="profiles"></datalist></span></label>
+        <label class="field"><span>Take length (s)</span><span class="row"><input type="range" min="2" max="8" step="0.5" data-key="record.duration_s"><span class="val" data-show="record.duration_s"></span></span></label>
+        <label class="field"><span>Countdown (s)</span><span class="row"><input type="range" min="0" max="5" step="1" data-key="record.countdown_s"><span class="val" data-show="record.countdown_s"></span></span></label>
+        <label class="field"><span>Target takes per sign</span><span class="row"><input type="range" min="3" max="20" step="1" data-key="record.target_per_sign"><span class="val" data-show="record.target_per_sign"></span></span></label>
+        <div class="row" style="margin-top:8px"><button class="btn sm danger" id="delRecs">Delete all recordings of this profile</button></div>
+      </section>
+      <section class="card"><h2>Self-test</h2>
+        <label class="field"><span>Signs per run</span><span class="row"><input type="range" min="5" max="100" step="5" data-key="test.rounds"><span class="val" data-show="test.rounds"></span></span></label>
+        <label class="field"><span>Time to sign (s)</span><span class="row"><input type="range" min="3" max="15" step="0.5" data-key="test.timeout_s"><span class="val" data-show="test.timeout_s"></span></span></label>
+        <label class="field"><span>Show reference hint</span><input type="checkbox" data-key="test.show_reference"></label>
+      </section>
+      <section class="card"><h2>Display</h2>
+        <label class="field"><span>Theme</span><select data-key="display.theme"><option value="dark">Dark</option><option value="light">Light</option></select></label>
+        <label class="field"><span>Glove panel<span class="hint">Simulated feed - no glove is connected.</span></span><input type="checkbox" data-key="display.show_glove"></label>
+        <label class="field"><span>Show top-3</span><input type="checkbox" data-key="display.show_top3"></label>
+        <label class="field"><span>History tape length</span><span class="row"><input type="range" min="3" max="20" step="1" data-key="display.history_len"><span class="val" data-show="display.history_len"></span></span></label>
+      </section>
+    </div>
+  </div>
+</div>
+<script src="/static/common.js"></script>
+<script>
+(async () => {
+  const $ = id => document.getElementById(id);
+  JSL.nav();
+  let data = await JSL.settings(true);
+  const get = (obj, path) => path.split(".").reduce((o, k) => o && o[k], obj);
+  const patchOf = (path, v) => path.split(".").reduceRight((acc, k) => ({ [k]: acc }), v);
+
+  $("model").innerHTML = Object.entries(data.claude_models).map(([id, label]) => `<option value="${id}">${JSL.esc(label)}</option>`).join("");
+  $("profiles").innerHTML = data.profiles.map(p => `<option value="${JSL.esc(p)}">`).join("");
+  function fill() {
+    const s = data.settings;
+    document.querySelectorAll("[data-key]").forEach(el => {
+      const v = get(s, el.dataset.key);
+      if (el.type === "checkbox") el.checked = !!v; else el.value = v;
+    });
+    document.querySelectorAll("[data-show]").forEach(el => {
+      const v = get(s, el.dataset.show); el.textContent = el.dataset.fmt === "pct" ? JSL.pct(v) : v;
+    });
+    $("keyState").innerHTML = data.claude_key ? `<span class="ok">✓ key set (${JSL.esc(data.claude_key)})</span>` : `<span class="muted">no key</span>`;
+  }
+  fill();
+
+  let deb;
+  document.querySelectorAll("[data-key]").forEach(el => {
+    const ev = el.type === "range" ? "input" : "change";
+    el.addEventListener(ev, () => {
+      const v = el.type === "checkbox" ? el.checked : el.type === "range" ? parseFloat(el.value) : el.value;
+      const show = document.querySelector(`[data-show="${el.dataset.key}"]`);
+      if (show) show.textContent = show.dataset.fmt === "pct" ? JSL.pct(v) : v;
+      if (el.dataset.key === "display.theme") JSL.applyTheme(v);
+      clearTimeout(deb);
+      deb = setTimeout(async () => {
+        try { data = await JSL.api("/api/settings", { method: "POST", body: patchOf(el.dataset.key, v) }); fill(); JSL.toast("Saved", "ok"); }
+        catch (e) { JSL.toast(e.message, "bad"); }
+      }, el.type === "range" ? 300 : 0);
+    });
+  });
+
+  $("saveKey").onclick = async () => {
+    try { const r = await JSL.api("/api/claude/key", { method: "POST", body: { key: $("key").value } }); data.claude_key = r.claude_key; $("key").value = ""; fill(); JSL.toast("API key saved", "ok"); }
+    catch (e) { JSL.toast(e.message, "bad"); }
+  };
+  $("delKey").onclick = async () => { if (!confirm("Remove the stored API key?")) return; await JSL.api("/api/claude/key", { method: "POST", body: { key: "" } }); data.claude_key = ""; fill(); };
+  $("testBtn").onclick = async () => {
+    $("testRes").textContent = "testing…"; $("testRes").className = "small muted";
+    const r = await JSL.api("/api/claude/test", { method: "POST", body: { model: $("model").value } });
+    $("testRes").className = "small " + (r.ok ? "ok" : "bad");
+    $("testRes").textContent = r.ok ? `✓ works (${r.latency_s}s)` : `✗ ${r.error}`;
+  };
+  $("resetRec").onclick = async () => {
+    data = await JSL.api("/api/settings", { method: "POST", body: { recognition: { conf_threshold: 0.6, streak: 5, cooldown_s: 1.5, ema_alpha: 0.4 } } }); fill(); JSL.toast("Recognition settings reset", "ok");
+  };
+  $("delRecs").onclick = async () => {
+    if (!confirm(`Delete ALL recordings of profile “${data.settings.profile}”? This cannot be undone.`)) return;
+    await JSL.api("/api/recordings", { method: "DELETE" }); JSL.toast("Recordings deleted");
+  };
+
+  // camera picker (stored in this browser)
+  let stream = null;
+  async function preview(id) {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: id ? { deviceId: { exact: id } } : true }); $("prev").srcObject = stream; }
+    catch (e) { JSL.toast("Camera: " + e.name, "bad"); }
+  }
+  async function listCams() {
+    await preview(localStorage.getItem("jsl.camera"));
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput");
+    const cur = localStorage.getItem("jsl.camera") || "";
+    $("camSel").innerHTML = `<option value="">Default camera</option>` + devs.map((d, i) => `<option value="${d.deviceId}" ${d.deviceId === cur ? "selected" : ""}>${JSL.esc(d.label || "Camera " + (i + 1))}</option>`).join("");
+  }
+  $("camSel").onchange = () => { const v = $("camSel").value; try { v ? localStorage.setItem("jsl.camera", v) : localStorage.removeItem("jsl.camera"); } catch (e) {} preview(v); JSL.toast("Camera saved for this browser", "ok"); };
+  listCams().catch(() => {});
+
+  const st = await JSL.api("/status");
+  $("sys").innerHTML = `<table><tbody>
+    <tr><td>Recognition model</td><td>${st.model_loaded ? "✓ loaded" : "DEMO mode (no compatible model)"}${st.model_updated ? " · trained " + JSL.esc(st.model_updated) : ""}</td></tr>
+    <tr><td>Claude</td><td>${st.claude.available ? "key set" : "no key"} · ${JSL.esc(st.claude.model)} · ${st.claude.references} reference sheets</td></tr>
+    <tr><td>Window</td><td>${(st.window / 30).toFixed(1)} s → ${st.model_len} steps</td></tr>
+    <tr><td>Glove</td><td>${JSL.esc(st.glove)} (no IMU connected)</td></tr></tbody></table>`;
+})();
+</script>
+</body>
+</html>

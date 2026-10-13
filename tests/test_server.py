@@ -17,7 +17,7 @@ def test_status_and_index():
     s = c.get("/status").json()
     assert s["status"] == "ok" and s["num_signs"] == 25 and len(s["signs"]) == 25
     r = c.get("/")
-    assert r.status_code == 200 and "SIMULATED SENSOR FEED" in r.text
+    assert r.status_code == 200 and "SIMULATED SENSOR FEED" in r.text and "/static/camera.js" in r.text
 
 
 def test_decode_frame_rejects_garbage():
@@ -32,5 +32,5 @@ def test_websocket_frame_and_bad_frame():
         assert ws.receive_json()["type"] == "error"
         ws.send_json({"type": "frame", "data": _jpeg_b64(np.zeros((480, 640, 3), np.uint8))})
         p = ws.receive_json()
-        assert p["type"] == "result" and "prediction" in p and "glove" in p and p["frame"]
+        assert p["type"] == "result" and "prediction" in p and "pose" in p and p["frame"]
         assert p["claude"]["status"] in ("off", "ready")

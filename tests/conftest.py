@@ -10,6 +10,8 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from src.common.config import FEATURE_DIM, NOSE, POS_L, POS_R, PRESENT, SHAPE_L, SHAPE_R  # noqa: E402
+
 
 @pytest.fixture
 def rng() -> np.random.Generator:
@@ -18,8 +20,14 @@ def rng() -> np.random.Generator:
 
 @pytest.fixture
 def random_seq(rng) -> np.ndarray:
-    """A (80, 126) fake landmark sequence with a few missing-hand frames."""
-    seq = rng.normal(0, 0.05, (80, 126)).astype(np.float32)
-    seq[:10, :63] = 0
-    seq[70:, 63:] = 0
+    """An (80, 136) fake feature sequence: left hand missing early, right hand missing late."""
+    seq = rng.normal(0, 0.5, (80, FEATURE_DIM)).astype(np.float32)
+    seq[:, PRESENT] = 1.0
+    seq[:10, SHAPE_L] = 0
+    seq[:10, POS_L] = 0
+    seq[:10, PRESENT.start] = 0
+    seq[70:, SHAPE_R] = 0
+    seq[70:, POS_R] = 0
+    seq[70:, PRESENT.start + 1] = 0
+    seq[:, NOSE] = rng.normal(0, 0.1, (80, 2)) + np.array([0, -0.7])
     return seq

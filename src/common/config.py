@@ -10,8 +10,18 @@ DATA = ROOT / "data"
 MODELS = ROOT / "models"
 FRONTEND = ROOT / "frontend"
 
-FEATURE_DIM = 126          # 2 hands x 21 keypoints x (x, y, z)
-HAND_DIM = 63              # one hand slot
+USER_DATA = DATA / "user"           # the user's own recordings (git-ignored)
+SETTINGS_FILE = DATA / "settings.json"
+
+# Feature layout v2 (see src/common/features.py):
+HAND_DIM = 63              # one hand's shape: 21 keypoints x (x, y, z), wrist-relative / palm length
+SHAPE_L = slice(0, 63)     # signer's LEFT hand shape
+SHAPE_R = slice(63, 126)   # signer's RIGHT hand shape
+POS_L = slice(126, 129)    # left wrist (x, y) and palm size, relative to shoulders / shoulder width
+POS_R = slice(129, 132)    # right wrist ...
+NOSE = slice(132, 134)     # nose (x, y) relative to shoulders / shoulder width
+PRESENT = slice(134, 136)  # 1.0 if left / right hand detected
+FEATURE_DIM = 136
 WINDOW = 96                # live rolling buffer length (~3.2 s at 30 fps)
 MODEL_LEN = 60             # frames fed to the model after resampling
 NATIVE_FPS = 30.0

@@ -1,9 +1,10 @@
-"""Live JSL predictor: MediaPipe features -> rolling buffer -> ONNX -> smoothed decision."""
+"""Live JSL predictor: MediaPipe hands + pose -> time-based buffer -> ONNX -> smoothed decision."""
 from __future__ import annotations
 
 import base64
 import time
 from collections import deque
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import cv2
@@ -12,30 +13,45 @@ import numpy as np
 
 from src.common.config import (FEATURE_DIM, IDLE_INDEX, MODEL_LEN, MODELS, NATIVE_FPS, NUM_SIGNS,
                                WINDOW, class_names, load_english)
-from src.common.features import hands_present, make_hands, process_bgr
+from src.common.features import FeatureExtractor, hands_present, pose_present
 from src.inference.glove_sim import GloveSource, SimulatedGlove
 
 # The buffer is time-based so any camera frame rate maps onto the 30 fps timeline used in training:
 # the last WINDOW/30 s (3.2 s) are interpolated at MODEL_LEN evenly spaced instants.
 SPAN_S = (WINDOW - 1) / NATIVE_FPS
 MIN_FILL = 48            # start predicting once the buffer spans this many 30 fps frames (1.6 s)
-PREDICT_EVERY = 3        # run the model every 3/30 s (every 3rd frame at 30 fps)
-EMA_ALPHA = 0.4
-CONF_THRESHOLD = 0.60
-STREAK_NEEDED = 5        # consecutive predictions with the same top-1
-COOLDOWN_S = 1.5
+PREDICT_EVERY = 3        # run the model every 3/30 s
 DEMO_PERIOD_S = 2.5
+RELOAD_CHECK_S = 2.0
 
 _draw = mp.solutions.drawing_utils
 _styles = mp.solutions.drawing_styles
 _conns = mp.solutions.hands.HAND_CONNECTIONS
+_POSE = mp.solutions.pose.PoseLandmark
 
 
-def annotate(frame_bgr: np.ndarray, results) -> np.ndarray:
-    """Copy of the frame with MediaPipe hand skeletons drawn."""
+@dataclass
+class DecisionParams:
+    """User-tunable decision settings (Settings page)."""
+    conf_threshold: float = 0.60    # minimum smoothed probability to show/emit a sign
+    streak: int = 5                 # consecutive predictions with the same top-1 before emitting
+    cooldown_s: float = 1.5         # minimum time between emissions
+    ema_alpha: float = 0.4          # smoothing: weight of the newest prediction
+
+
+def annotate(frame_bgr: np.ndarray, hand_results, body: dict | None = None, aspect: float = 1.0) -> np.ndarray:
+    """Copy of the frame with hand skeletons and (if known) the shoulder line drawn."""
     img = frame_bgr.copy()
-    if results is not None and results.multi_hand_landmarks:
-        for lm in results.multi_hand_landmarks:
+    h, w = img.shape[:2]
+    if body is not None:
+        c, half = body["center"], body["width"] / 2
+        p1 = (int((c[0] - half) / aspect * w), int(c[1] * h))
+        p2 = (int((c[0] + half) / aspect * w), int(c[1] * h))
+        cv2.line(img, p1, p2, (246, 130, 59), 2)
+        nose = body["nose"]
+        cv2.circle(img, (int(nose[0] / aspect * w), int(nose[1] * h)), 4, (246, 130, 59), -1)
+    if hand_results is not None and hand_results.multi_hand_landmarks:
+        for lm in hand_results.multi_hand_landmarks:
             _draw.draw_landmarks(img, lm, _conns, _styles.get_default_hand_landmarks_style(),
                                  _styles.get_default_hand_connections_style())
     return img
@@ -51,26 +67,57 @@ class JSLPredictor:
     """Stateful per-client predictor. Call `process_frame` for every incoming camera frame."""
 
     def __init__(self, model_path: Path | None = None, glove: GloveSource | None = None,
-                 det_conf: float = 0.5, track_conf: float = 0.5) -> None:
-        model_path = Path(model_path or MODELS / "jsl_model.onnx")
+                 det_conf: float = 0.3, track_conf: float = 0.3, pose_every: int = 2,
+                 params: DecisionParams | None = None) -> None:
+        self.model_path = Path(model_path or MODELS / "jsl_model.onnx")
         self.names = class_names()
         self.english = load_english()
-        self.session = None
-        if model_path.exists():
-            import onnxruntime as ort
-            opts = ort.SessionOptions()
-            opts.intra_op_num_threads = 2
-            self.session = ort.InferenceSession(str(model_path), opts,
-                                                providers=["CPUExecutionProvider"])
-        self.mode = "model" if self.session else "demo"
-        self.hands = make_hands(det_conf, track_conf)
+        self.params = params or DecisionParams()
+        self.session, self.model_mtime, self._next_check = None, 0.0, 0.0
+        self._load_model()
+        self.fx = FeatureExtractor(det_conf, track_conf, pose_every=pose_every)
         self.glove = glove or SimulatedGlove()
+        self.last_vec = np.zeros(FEATURE_DIM, np.float32)
+        self.last_annotated: np.ndarray | None = None
         self.reset()
+
+    # ------------------------------------------------------------------ model
+    def _load_model(self) -> None:
+        if not self.model_path.exists():
+            self.session, self.mode = None, "demo"
+            return
+        import onnxruntime as ort
+        opts = ort.SessionOptions()
+        opts.intra_op_num_threads = 2
+        session = ort.InferenceSession(str(self.model_path), opts, providers=["CPUExecutionProvider"])
+        if session.get_inputs()[0].shape[-1] != FEATURE_DIM:      # stale model from an older layout
+            self.session, self.mode = None, "demo"
+            return
+        self.session, self.mode = session, "model"
+        self.model_mtime = self.model_path.stat().st_mtime
+
+    def maybe_reload(self, now: float) -> bool:
+        """Hot-reload the ONNX model if it was retrained. Returns True if reloaded."""
+        if now < self._next_check:
+            return False
+        self._next_check = now + RELOAD_CHECK_S
+        mtime = self.model_path.stat().st_mtime if self.model_path.exists() else 0.0
+        if mtime and mtime != self.model_mtime:
+            self._load_model()
+            self.ema = None
+            return True
+        return False
+
+    def set_params(self, **kw) -> None:
+        """Update decision settings (unknown keys ignored)."""
+        for k, v in kw.items():
+            if hasattr(self.params, k) and v is not None:
+                setattr(self.params, k, type(getattr(self.params, k))(v))
 
     # ------------------------------------------------------------------ state
     def reset(self) -> None:
         """Clear buffer and decision state (e.g. between replay videos)."""
-        self.buffer: deque[np.ndarray] = deque()          # per-frame 126-d vectors ...
+        self.buffer: deque[np.ndarray] = deque()          # per-frame feature vectors ...
         self.times: deque[float] = deque()                  # ... and their timestamps (s)
         self.last_pred_t = -1e9
         self.clip: deque[tuple[np.ndarray, bool]] = deque(maxlen=WINDOW)  # (annotated 320 px frame, hands?)
@@ -83,13 +130,13 @@ class JSLPredictor:
         self.fps = 0.0
         self.demo_t0: float | None = None
 
-    # ------------------------------------------------------------------ core
     def span(self) -> float:
         """Seconds of history in the buffer."""
         return self.times[-1] - self.times[0] if self.times else 0.0
 
+    # ------------------------------------------------------------------ core
     def model_input(self) -> np.ndarray:
-        """Interpolate the last 3.2 s at MODEL_LEN instants -> (1, MODEL_LEN, 126).
+        """Interpolate the last 3.2 s at MODEL_LEN instants -> (1, MODEL_LEN, D).
 
         Instants before the first buffered frame are zeros (front padding). At exactly 30 fps this
         equals "last 96 frames, zero-padded, linearly resampled to 60" used in training.
@@ -108,8 +155,7 @@ class JSLPredictor:
         return out[None]
 
     def _infer(self) -> np.ndarray:
-        logits = self.session.run(["logits"], {"input": self.model_input()})[0][0]
-        return softmax(logits)
+        return softmax(self.session.run(["logits"], {"input": self.model_input()})[0][0])
 
     def _demo_probs(self, t: float) -> np.ndarray:
         if self.demo_t0 is None:
@@ -125,7 +171,7 @@ class JSLPredictor:
         return p / p.sum()
 
     def push_vector(self, vec: np.ndarray, t: float | None = None) -> str | None:
-        """Add one 126-d frame vector; update probabilities/decision. Returns emitted sign or None."""
+        """Add one frame vector; update probabilities/decision. Returns emitted sign or None."""
         t = time.monotonic() if t is None else t
         self.buffer.append(vec.astype(np.float32))
         self.times.append(t)
@@ -141,7 +187,8 @@ class JSLPredictor:
             probs = self._infer()
         else:
             return None
-        self.ema = probs if self.ema is None else EMA_ALPHA * probs + (1 - EMA_ALPHA) * self.ema
+        a = self.params.ema_alpha
+        self.ema = probs if self.ema is None else a * probs + (1 - a) * self.ema
         return self._decide(t)
 
     def _decide(self, t: float) -> str | None:
@@ -153,8 +200,9 @@ class JSLPredictor:
             self.streak_cls, self.streak_n = top, 1
         if top != self.blocked_cls:          # idle or a different sign re-arms the last one
             self.blocked_cls = -1
-        if (top != IDLE_INDEX and conf >= CONF_THRESHOLD and self.streak_n >= STREAK_NEEDED
-                and top != self.blocked_cls and t - self.last_emit_t >= COOLDOWN_S):
+        p = self.params
+        if (top != IDLE_INDEX and conf >= p.conf_threshold and self.streak_n >= p.streak
+                and top != self.blocked_cls and t - self.last_emit_t >= p.cooldown_s):
             self.blocked_cls, self.last_emit_t = top, t
             return self.names[top]
         return None
@@ -175,31 +223,36 @@ class JSLPredictor:
             pred = {"sign": None, "english": None,
                     "confidence": round(float(self.ema[top]), 4), "is_confident": False}
         else:
-            pred = {**self._entry(top), "is_confident": float(self.ema[top]) >= CONF_THRESHOLD}
+            pred = {**self._entry(top),
+                    "is_confident": float(self.ema[top]) >= self.params.conf_threshold}
         return pred, top3
 
-    def process_frame(self, frame_bgr: np.ndarray, t: float | None = None,
-                      encode: bool = True) -> dict:
+    def process_frame(self, frame_bgr: np.ndarray, t: float | None = None, encode: bool = True,
+                      want_glove: bool = True) -> dict:
         """Full live step for one BGR frame -> UI payload."""
         t = time.monotonic() if t is None else t
+        reloaded = self.maybe_reload(time.monotonic())
         if self.last_frame_t is not None and t > self.last_frame_t:
             inst = 1.0 / (t - self.last_frame_t)
             self.fps = inst if self.fps == 0 else 0.9 * self.fps + 0.1 * inst
         self.last_frame_t = t
-        vec, results = process_bgr(frame_bgr, self.hands)
+        vec, hres, _ = self.fx.process(frame_bgr)
+        self.last_vec = vec
         emitted = self.push_vector(vec, t)
         pred, top3 = self.current()
         left, right = hands_present(vec)
         payload = {
             "prediction": pred, "top3": top3, "emitted": emitted,
-            "left_hand": left, "right_hand": right,
+            "left_hand": left, "right_hand": right, "pose": pose_present(vec),
             "buffer_fill": round(min(1.0, self.span() / SPAN_S), 3),
-            "fps_server": round(self.fps, 1), "mode": self.mode,
-            "glove": self.glove.read(vec if (left or right) else None),
+            "fps_server": round(self.fps, 1), "mode": self.mode, "model_reloaded": reloaded,
+            "params": asdict(self.params),
         }
-        img = annotate(frame_bgr, results)
-        self.last_annotated = img                       # for local display (OpenCV demo)
-        h, w = img.shape[:2]
+        if want_glove:
+            payload["glove"] = self.glove.read(None)
+        h, w = frame_bgr.shape[:2]
+        img = annotate(frame_bgr, hres, self.fx.body, w / h)
+        self.last_annotated = img
         self.clip.append((cv2.resize(img, (320, int(h * 320 / w)), interpolation=cv2.INTER_AREA), left or right))
         if encode:
             payload["frame"] = self.encode(img)
@@ -225,4 +278,4 @@ class JSLPredictor:
 
     def close(self) -> None:
         """Release MediaPipe resources."""
-        self.hands.close()
+        self.fx.close()

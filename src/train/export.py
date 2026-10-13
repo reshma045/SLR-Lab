@@ -45,13 +45,16 @@ def write_meta(report: dict) -> None:
         "input": {"name": "input", "shape": ["B", MODEL_LEN, FEATURE_DIM], "dtype": "float32"},
         "output": {"name": "logits", "shape": ["B", len(names)]},
         "feature_layout": {
-            "dim": FEATURE_DIM,
-            "slots": {"left": [0, 63], "right": [63, 126]},
-            "per_hand": "21 MediaPipe keypoints x (x, y, z), each minus the wrist keypoint",
-            "missing_hand": "zeros", "mirrored_input": False,
-            "temporal": f"last {WINDOW} frames (front zero-padded) linearly resampled to {MODEL_LEN}",
+            "version": 2, "dim": FEATURE_DIM,
+            "blocks": {"shape_left": [0, 63], "shape_right": [63, 126], "pos_left": [126, 129],
+                       "pos_right": [129, 132], "nose": [132, 134], "present": [134, 136]},
+            "shape": "21 keypoints x (x, y, z), wrist-relative, divided by palm length (wrist->middle MCP)",
+            "position": "wrist (x, y) relative to shoulder centre / shoulder width, plus palm / shoulder width",
+            "left_right": "signer's own left/right (nearest MediaPipe Pose wrist)",
+            "aspect_corrected": True, "mirrored_input": False,
+            "temporal": f"last {WINDOW} frames at 30 fps (time-based) linearly resampled to {MODEL_LEN}",
         },
-        "val_metrics_optimistic": {k: report[k] for k in ("val_top1", "val_top3")},
+        "metrics": {k: report.get(k) for k in ("synthetic_val_top1", "real_val_top1", "user_recordings")},
     }
     with open(MODELS / "meta.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)

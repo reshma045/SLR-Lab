@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Record and Train</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:12px;align-items:start}
+.target{display:flex;align-items:center;gap:16px;margin:12px 0}
+.target .k{font-family:var(--jp);font-size:56px;font-weight:700;line-height:1}
+.target .e{font-size:17px;color:var(--muted)}
+.recbar{height:10px;margin-top:8px}
+.recbar i{background:var(--bad)}
+.signs{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.tile{border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--card2);cursor:pointer}
+.tile:hover{border-color:var(--accent)}
+.tile.sel{border-color:var(--accent);background:var(--accent-soft)}
+.tile b{font-family:var(--jp);font-size:16px;display:block}
+.tile .meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:2px 0 4px}
+.tile .bar{height:4px}
+.ref img{width:100%;border-radius:8px;border:1px solid var(--border);display:block}
+.recs{max-height:180px;overflow:auto}
+.recs .r{display:flex;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.recs .r span:first-child{flex:1}
+.chartwrap{height:170px;position:relative}
+.log{font:11px/1.4 ui-monospace,Consolas,monospace;background:var(--track);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:130px;overflow:auto;white-space:pre-wrap;color:var(--muted)}
+.result{padding:10px 12px;border-radius:8px;border:1px solid var(--border);font-size:13px;display:none}
+.result.ok{display:block;border-color:rgba(34,197,94,.6)}.result.bad{display:block;border-color:rgba(239,68,68,.6)}
+kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11px}
+@media (max-width:1100px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="cols">
+    <div class="grid">
+      <section class="card">
+        <h2>Record yourself<span class="sp"></span><span class="chip"><span class="dot" id="handDot"></span><b id="handTxt">No hands</b></span>
+          <span class="chip"><span class="dot" id="poseDot"></span><b id="poseTxt">Shoulders?</b></span></h2>
+        <div class="stage">
+          <video autoplay muted playsinline></video><img alt="">
+          <div class="overlay cam show"><div class="spin"></div><strong>Starting camera…</strong><span>Allow camera access when the browser asks.</span></div>
+          <div class="overlay recon"><div class="spin"></div><strong>Reconnecting…</strong><span></span></div>
+          <div class="overlay" id="cd"><div class="countdown" id="cdNum">3</div><strong id="cdTxt">Get ready - hands down</strong></div>
+        </div>
+        <div class="bar recbar" id="recbar"><i id="recFill"></i></div>
+        <div class="target"><div class="k" id="tSign">—</div><div><div class="e" id="tEng"></div><div class="small muted" id="tCount"></div></div></div>
+        <div class="row">
+          <button class="btn primary big" id="recBtn" disabled>● Record take</button>
+          <button class="btn" id="cancelBtn" disabled>Cancel</button>
+          <label class="row small"><input type="checkbox" id="guided" checked> Guided: move to the next sign that needs takes</label>
+        </div>
+        <p class="small muted" style="margin-top:8px">Press <kbd>Space</kbd> to record. Each take: start with hands down → sign once at a natural pace → lower your hands.
+          Head, shoulders and both hands should be visible.</p>
+        <div class="result" id="result" style="margin-top:10px"></div>
+      </section>
+      <section class="card">
+        <h2>Retrain the model<span class="sp"></span><span id="trainState" class="chip">idle</span></h2>
+        <p class="small muted" id="trainHint"></p>
+        <div class="row" style="margin:10px 0">
+          <button class="btn primary" id="trainBtn">Retrain with my recordings</button>
+          <button class="btn" id="stopBtn" disabled>Stop</button>
+          <button class="btn" id="rollbackBtn" disabled title="Restore the model from before the last training">Roll back</button>
+        </div>
+        <div class="bar" style="margin-bottom:10px"><i id="trainFill"></i></div>
+        <div class="stats" id="report" style="margin-bottom:10px"></div>
+        <div class="chartwrap"><canvas id="chart"></canvas></div>
+        <details style="margin-top:8px"><summary class="small muted">Training log</summary><div class="log" id="log"></div></details>
+        <details style="margin-top:6px"><summary class="small muted">Confusion matrix</summary><img id="conf" alt="" style="width:100%;margin-top:8px;border-radius:8px"></details>
+      </section>
+    </div>
+    <div class="grid">
+      <section class="card ref"><h2>Reference: how the sign looks<span class="sp"></span><span class="small" id="refTitle"></span></h2>
+        <img id="refImg" alt="Reference keyframes"><p class="small muted" id="refNone" style="display:none">No reference sheet. Run <code>python scripts/build_reference_sheets.py</code> (needs the videos).</p>
+        <p class="small muted" style="margin-top:6px">6 keyframes in time order (1 → 6) from the reference video. Frames are shown as the camera sees them (not mirrored).</p></section>
+      <section class="card"><h2>Signs<span class="sp"></span><span class="small" id="totals"></span></h2><div class="signs" id="signs"></div></section>
+      <section class="card"><h2>Takes for this sign</h2><div class="recs" id="recs"></div></section>
+    </div>
+  </div>
+</div>
+<script src="/static/common.js"></script>
+<script src="/static/camera.js"></script>
+<script>
+(async () => {
+  const $ = id => document.getElementById(id);
+  JSL.nav(`<span class="chip"><span class="dot" id="wsDot"></span>WS <b id="wsTxt">…</b></span><span class="chip">Profile <b id="prof"></b></span>`);
+  const S = (await JSL.settings()).settings;
+  const target = S.record.target_per_sign;
+  $("prof").textContent = S.profile;
+  let signs = [], sel = 0, phase = "idle", cdTimer = null;
+  const dot = (id, cls) => { $(id).className = "dot " + (cls || ""); };
+
+  async function loadSigns() {
+    signs = (await JSL.api("/api/signs")).signs;
+    const total = signs.reduce((a, s) => a + s.recordings, 0), done = signs.filter(s => s.recordings >= target).length;
+    $("totals").textContent = `${total} takes · ${done}/25 signs at target (${target})`;
+    $("signs").innerHTML = signs.map(s => `<div class="tile${s.id === sel ? " sel" : ""}" data-id="${s.id}"><b>${JSL.esc(s.sign)}</b>
+      <div class="meta"><span>${JSL.esc(s.english)}</span><span>${s.recordings}/${target}</span></div>
+      <div class="bar ${s.recordings >= target ? "ok" : ""}"><i style="width:${Math.min(100, s.recordings / target * 100)}%"></i></div></div>`).join("");
+    $("signs").querySelectorAll(".tile").forEach(t => t.onclick = () => select(+t.dataset.id));
+    renderTarget();
+  }
+  function renderTarget() {
+    const s = signs[sel]; if (!s) return;
+    $("tSign").textContent = s.sign; $("tEng").textContent = s.english;
+    $("tCount").textContent = `${s.recordings} take${s.recordings === 1 ? "" : "s"} recorded · target ${target}`;
+    $("refTitle").textContent = `${s.sign} · ${s.english}`;
+    $("refImg").style.display = s.reference ? "" : "none"; $("refNone").style.display = s.reference ? "none" : "";
+    if (s.reference) $("refImg").src = `/api/reference/${s.id}.jpg`;
+  }
+  async function loadRecs() {
+    const r = (await JSL.api(`/api/recordings/${sel}`)).recordings;
+    $("recs").innerHTML = r.length ? r.slice().reverse().map(x => `<div class="r"><span>${JSL.esc(x.created || x.name)}</span>
+      <span class="muted">${x.duration_s}s · hands ${JSL.pct(x.hand_rate)} · pose ${JSL.pct(x.pose_rate)} · ${x.captured_fps} fps</span>
+      <button class="btn sm danger" data-n="${JSL.esc(x.name)}">Delete</button></div>`).join("") : `<p class="small muted">No takes yet.</p>`;
+    $("recs").querySelectorAll("button").forEach(b => b.onclick = async () => {
+      await JSL.api(`/api/recordings/${sel}/${b.dataset.n}`, { method: "DELETE" }); JSL.toast("Take deleted"); await loadSigns(); loadRecs();
+    });
+  }
+  function select(id) { sel = id; loadSigns(); loadRecs(); }
+
+  // ---------- recording flow
+  function startCountdown() {
+    if (phase !== "idle") return;
+    phase = "countdown"; $("recBtn").disabled = true; $("cancelBtn").disabled = false; $("result").className = "result";
+    let n = S.record.countdown_s;
+    const tick = () => {
+      if (phase !== "countdown") return;
+      if (n <= 0) { $("cd").classList.remove("show"); phase = "recording"; cam.send({ type: "record_start", sign_id: sel }); return; }
+      $("cdNum").textContent = n; $("cdTxt").textContent = `Get ready to sign ${signs[sel].sign} - hands down`; $("cd").classList.add("show");
+      n--; cdTimer = setTimeout(tick, 1000);
+    };
+    tick();
+  }
+  function cancel() { clearTimeout(cdTimer); $("cd").classList.remove("show"); cam.send({ type: "record_cancel" }); phase = "idle"; idleButtons(); $("recFill").style.width = "0"; }
+  function idleButtons() { $("recBtn").disabled = !(cam.ws && cam.ws.readyState === 1); $("cancelBtn").disabled = true; }
+  async function onRecording(r) {
+    if (r.state === "recording") { $("recFill").style.width = (r.elapsed / r.duration * 100) + "%"; $("recBtn").textContent = "● Recording… sign now"; return; }
+    phase = "idle"; $("recFill").style.width = "0"; $("recBtn").textContent = "● Record take"; idleButtons();
+    const res = $("result");
+    if (r.state === "saved") {
+      res.className = "result ok"; res.textContent = `Saved take for ${signs[r.sign_id].sign} (hands ${JSL.pct(r.quality.hand_rate)}, shoulders ${JSL.pct(r.quality.pose_rate)}). ${r.count}/${target}`;
+      await loadSigns();
+      if ($("guided").checked && signs[sel].recordings >= target) {
+        const next = signs.find(s => s.recordings < target);
+        if (next) { select(next.id); JSL.toast(`Next: ${next.sign} (${next.english})`); } else JSL.toast("All signs reached the target - retrain now!", "ok");
+      } else loadRecs();
+    } else { res.className = "result bad"; res.textContent = `Take not saved: ${r.quality.reason}`; }
+  }
+
+  const cam = new LiveCamera({ stage: document.querySelector(".stage"), page: "record",
+    onStatus: s => { $("wsTxt").textContent = s.ws; dot("wsDot", s.ws === "connected" ? "ok" : "warn"); if (phase === "idle") idleButtons(); },
+    onResult: msg => {
+      if (msg.type !== "result") return;
+      const n = (msg.left_hand ? 1 : 0) + (msg.right_hand ? 1 : 0);
+      $("handTxt").textContent = n ? [msg.left_hand && "L", msg.right_hand && "R"].filter(Boolean).join(" + ") : "No hands"; dot("handDot", n ? "ok" : "");
+      $("poseTxt").textContent = msg.pose ? "Shoulders ✓" : "Shoulders not visible"; dot("poseDot", msg.pose ? "ok" : "warn");
+      if (msg.recording) onRecording(msg.recording);
+    } });
+  $("recBtn").onclick = startCountdown; $("cancelBtn").onclick = cancel;
+  document.addEventListener("keydown", e => { if (e.code === "Space" && e.target === document.body) { e.preventDefault(); phase === "idle" ? startCountdown() : cancel(); } });
+
+  // ---------- training
+  let chart = null, poll = null;
+  if (window.Chart) chart = new Chart($("chart"), { type: "line",
+    data: { labels: [], datasets: [{ label: "synthetic val (optimistic)", data: [], borderColor: "#8b949e", borderWidth: 1.5, pointRadius: 0 },
+                                   { label: "REAL val (your held-out takes)", data: [], borderColor: "#3b82f6", borderWidth: 2, pointRadius: 0 }] },
+    options: { animation: false, maintainAspectRatio: false, scales: { y: { min: 0, max: 1, ticks: { callback: v => v * 100 + "%" } } },
+      plugins: { legend: { labels: { boxWidth: 10, color: "#8b949e" } } } } });
+  function report(rep) {
+    if (!rep || !rep.finished) { $("report").innerHTML = ""; return; }
+    $("report").innerHTML = `<div class="stat"><div class="v">${rep.real_val_top1 == null ? "—" : JSL.pct(rep.real_val_top1)}</div><div class="k">Real val top-1</div></div>
+      <div class="stat"><div class="v">${JSL.pct(rep.synthetic_val_top1)}</div><div class="k">Synthetic val (optimistic)</div></div>
+      <div class="stat"><div class="v">${rep.user_recordings}</div><div class="k">Your takes used</div></div>
+      <div class="stat"><div class="v small" style="font-size:14px">${JSL.esc(rep.finished)}</div><div class="k">Last trained</div></div>`;
+  }
+  async function refreshTrain() {
+    const st = await JSL.api("/api/train/status");
+    const running = st.running;
+    $("trainState").textContent = st.state || "idle";
+    $("trainBtn").disabled = running; $("stopBtn").disabled = !running; $("rollbackBtn").disabled = running || !st.has_previous;
+    $("trainFill").style.width = st.max_epochs ? Math.min(100, (st.epoch || 0) / st.max_epochs * 100) + "%" : "0";
+    $("log").textContent = (st.log_tail || []).join("\n");
+    if (chart && st.history) {
+      chart.data.labels = st.history.map(h => h.epoch);
+      chart.data.datasets[0].data = st.history.map(h => h.val_top1);
+      chart.data.datasets[1].data = st.history.map(h => h.real_top1);
+      chart.update();
+    }
+    report(st.report || st.last_report);
+    if (st.state === "done" && poll) { JSL.toast("Training finished - the live model reloads automatically", "ok"); $("conf").src = "/api/train/confusion.png?" + Date.now(); }
+    if (st.state === "failed" && poll) JSL.toast("Training failed: " + (st.error || "see log"), "bad");
+    if (running && !poll) poll = setInterval(refreshTrain, 1500);
+    if (!running && poll) { clearInterval(poll); poll = null; }
+  }
+  $("trainHint").textContent = `Uses the 25 reference videos plus your takes (your newest take per sign is held out as an honest test once you have ≥3). Takes ~5–15 min on CPU; you can keep using the app.`;
+  $("trainBtn").onclick = async () => { const r = await JSL.api("/api/train", { method: "POST", body: {} }); if (!r.started) JSL.toast(r.error, "bad"); refreshTrain(); };
+  $("stopBtn").onclick = async () => { await JSL.api("/api/train/stop", { method: "POST" }); refreshTrain(); };
+  $("rollbackBtn").onclick = async () => { if (!confirm("Restore the previous model?")) return; await JSL.api("/api/train/rollback", { method: "POST" }); JSL.toast("Previous model restored", "ok"); refreshTrain(); };
+  $("conf").src = "/api/train/confusion.png";
+
+  await loadSigns(); loadRecs(); refreshTrain(); cam.start();
+})();
+</script>
+</body>
+</html>

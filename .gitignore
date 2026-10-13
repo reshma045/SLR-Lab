@@ -13,3 +13,10 @@ artifacts_train.log
 artifacts_replay.log
 .env
 data/reference_sheets/
+data/user/
+data/settings.json
+data/app.db
+models/train.log
+models/train_status.json
+models/previous/
+data/landmarks_aug/

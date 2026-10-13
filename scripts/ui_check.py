@@ -1,7 +1,7 @@
 """End-to-end check: start the server, hit /status, send a WebSocket frame, load the UI in
 headless Chromium with a fake camera, collect console errors and save screenshots.
 
-    python scripts/ui_check.py          # screenshots -> docs/ui_1080p.png, docs/ui_1280.png
+    python scripts/ui_check.py          # screenshots of every page -> docs/ui_<page>_<size>.png
 """
 from __future__ import annotations
 
@@ -47,6 +47,9 @@ async def ws_check() -> dict:
         return json.loads(await asyncio.wait_for(ws.recv(), 30))
 
 
+PAGES = {"live": "/", "record": "/record", "test": "/test", "history": "/history", "settings": "/settings"}
+
+
 def browser_check() -> list[str]:
     from playwright.sync_api import sync_playwright
 
@@ -55,27 +58,24 @@ def browser_check() -> list[str]:
     with sync_playwright() as p:
         browser = p.chromium.launch(args=["--use-fake-device-for-media-stream",
                                           "--use-fake-ui-for-media-stream"])
-        for name, (w, h) in {"ui_1080p": (1920, 960), "ui_1280": (1280, 720)}.items():
-            page = browser.new_page(viewport={"width": w, "height": h})
-            page.on("console", lambda m: m.type == "error" and errors.append(f"console: {m.text}"))
-            page.on("pageerror", lambda e: errors.append(f"pageerror: {e}"))
-            page.goto(URL)
-            page.wait_for_timeout(7000)
-            scroll = page.evaluate("[document.documentElement.scrollHeight, innerHeight,"
-                                   " document.documentElement.scrollWidth, innerWidth]")
-            if scroll[0] > scroll[1] or scroll[2] > scroll[3]:
-                errors.append(f"{name}: page overflows viewport {scroll}")
-            ws_state = page.inner_text("#wsTxt")
-            print(f"{name}: ws={ws_state} mode={page.inner_text('#modeTxt')} fps={page.inner_text('#fpsTxt')} "
-                  f"buffer={page.inner_text('#bufTxt')}")
-            if ws_state != "connected":
-                errors.append(f"{name}: websocket not connected ({ws_state})")
-            page.screenshot(path=str(OUT / f"{name}.png"))
-            page.click("#helpBtn")
-            page.wait_for_timeout(300)
-            if name == "ui_1080p":
-                page.screenshot(path=str(OUT / "ui_help.png"))
-            page.close()
+        for size, (w, h) in {"1080p": (1920, 960), "1280": (1280, 720)}.items():
+            for name, path in PAGES.items():
+                page = browser.new_page(viewport={"width": w, "height": h})
+                tag = f"{name}@{size}"
+                page.on("console", lambda m, tag=tag: m.type == "error" and errors.append(f"{tag} console: {m.text}"))
+                page.on("pageerror", lambda e, tag=tag: errors.append(f"{tag} pageerror: {e}"))
+                page.goto(URL + path)
+                page.wait_for_timeout(5000 if name in ("live", "record", "test") else 1500)
+                if name == "live":
+                    dims = page.evaluate("[document.documentElement.scrollHeight, innerHeight, document.documentElement.scrollWidth, innerWidth]")
+                    if dims[0] > dims[1] + 1 or dims[2] > dims[3] + 1:
+                        errors.append(f"{tag}: page overflows viewport {dims}")
+                    ws_state = page.inner_text("#wsTxt")
+                    print(f"{tag}: ws={ws_state} mode={page.inner_text('#modeTxt')} fps={page.inner_text('#fpsTxt')}")
+                    if ws_state != "connected":
+                        errors.append(f"{tag}: websocket not connected ({ws_state})")
+                page.screenshot(path=str(OUT / f"ui_{name}_{size}.png"))
+                page.close()
         browser.close()
     return errors
 
@@ -90,10 +90,10 @@ def main() -> int:
         payload = asyncio.run(ws_check())
         keys = sorted(k for k in payload if k != "frame")
         print("WS payload keys:", keys, "| frame bytes:", len(payload.get("frame", "")))
-        assert payload["type"] == "result" and {"prediction", "top3", "glove", "buffer_fill"} <= set(payload)
+        assert payload["type"] == "result" and {"prediction", "top3", "buffer_fill", "pose", "claude"} <= set(payload)
         errors = browser_check()
         print("Browser errors:", errors or "none")
-        print(f"Screenshots: {OUT / 'ui_1080p.png'}, {OUT / 'ui_1280.png'}, {OUT / 'ui_help.png'}")
+        print(f"Screenshots: {OUT}/ui_<page>_<size>.png")
         return 1 if errors else 0
     finally:
         server.terminate()
