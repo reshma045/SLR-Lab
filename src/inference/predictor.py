@@ -15,8 +15,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
-from src.common.config import (FEATURE_DIM, IDLE_INDEX, MODEL_IN, MODEL_LEN, MODELS, MOUTH, NATIVE_FPS,
-                               NUM_SIGNS, WINDOW, class_names, load_english)
+from src.common.config import (BROWS, FEATURE_DIM, GAZE, IDLE_INDEX, MODEL_IN, MODEL_LEN, MODELS, MOUTH,
+                               NATIVE_FPS, NUM_SIGNS, WINDOW, class_names, load_english)
 from src.common.features import add_motion, face_present, frame_features, hands_present, pose_present
 from src.common.landmarks import RAW_DIM, LandmarkExtractor
 from src.inference.glove_sim import GloveSource, SimulatedGlove
@@ -35,7 +35,9 @@ _draw = mp.solutions.drawing_utils
 _styles = mp.solutions.drawing_styles
 _HAND_CONN = mp.solutions.hands.HAND_CONNECTIONS
 _LIP_CONN = mp.solutions.face_mesh_connections.FACEMESH_LIPS
-_EYE_CONN = mp.solutions.face_mesh_connections.FACEMESH_LEFT_EYE | mp.solutions.face_mesh_connections.FACEMESH_RIGHT_EYE
+_fmc = mp.solutions.face_mesh_connections
+_EYE_CONN = (_fmc.FACEMESH_LEFT_EYE | _fmc.FACEMESH_RIGHT_EYE | _fmc.FACEMESH_LEFT_IRIS | _fmc.FACEMESH_RIGHT_IRIS
+             | _fmc.FACEMESH_LEFT_EYEBROW | _fmc.FACEMESH_RIGHT_EYEBROW)
 _ARM = [(11, 12), (11, 13), (13, 15), (12, 14), (14, 16)]
 
 
@@ -105,13 +107,13 @@ class JSLPredictor:
     def _load_model(self) -> None:
         self.session, self.mode = None, "demo"
         if self.model_path.exists():
+            self.model_mtime = self.model_path.stat().st_mtime   # remember it even if incompatible (no reload loop)
             import onnxruntime as ort
             opts = ort.SessionOptions()
             opts.intra_op_num_threads = 2
             session = ort.InferenceSession(str(self.model_path), opts, providers=["CPUExecutionProvider"])
             if session.get_inputs()[0].shape[-1] == MODEL_IN:           # ignore models of an older layout
                 self.session, self.mode = session, "model"
-                self.model_mtime = self.model_path.stat().st_mtime
         self._load_protos()
 
     def _load_protos(self) -> None:
@@ -298,6 +300,9 @@ class JSLPredictor:
             "prediction": pred, "top3": top3, "emitted": emitted,
             "left_hand": left, "right_hand": right, "pose": pose_present(vec), "face": face_present(vec),
             "mouth_open": round(float(vec[MOUTH.start]), 3),
+            "gaze": [round(float((vec[GAZE.start] + vec[GAZE.start + 2]) / 2), 3),
+                     round(float((vec[GAZE.start + 1] + vec[GAZE.start + 3]) / 2), 3)],
+            "brows": round(float(vec[BROWS].mean()), 3),
             "buffer_fill": round(min(1.0, self.span() / SPAN_S), 3),
             "fps_server": round(self.fps, 1), "mode": self.mode, "model_reloaded": reloaded,
             "personal_examples": 0 if self.protos is None else int(len(self.protos[0])),

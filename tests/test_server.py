@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from fastapi.testclient import TestClient
 
+from src.common.config import NUM_SIGNS
 from src.inference.server import app, decode_frame
 
 
@@ -15,7 +16,7 @@ def _jpeg_b64(img) -> str:
 def test_status_and_index():
     c = TestClient(app)
     s = c.get("/status").json()
-    assert s["status"] == "ok" and s["num_signs"] == 25 and len(s["signs"]) == 25
+    assert s["status"] == "ok" and s["num_signs"] == NUM_SIGNS and len(s["signs"]) == NUM_SIGNS
     r = c.get("/")
     assert r.status_code == 200 and "SIMULATED SENSOR FEED" in r.text and "/static/camera.js" in r.text
 

@@ -18,7 +18,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 import numpy as np  # noqa: E402
 
-from scripts.extract_landmarks import TMP, collect_videos, is_blue_frame, read_frames  # noqa: E402
+from scripts.extract_landmarks import TMP, is_blue_frame, raw_videos, read_frames  # noqa: E402
 from src.common.config import DATA, load_label_map  # noqa: E402
 from src.common.features import sequence_features  # noqa: E402
 from src.common.landmarks import LandmarkExtractor  # noqa: E402
@@ -34,8 +34,7 @@ def crop_signer(img: np.ndarray) -> np.ndarray:
 
 
 def main() -> None:
-    zips = sorted((DATA / "raw").glob("*.zip"))
-    videos = collect_videos(zips[0] if zips else None, None if zips else DATA / "raw")
+    videos = raw_videos()
     REF_DIR.mkdir(parents=True, exist_ok=True)
     try:
         with LandmarkExtractor(0.3, 0.3, static=True) as fx:

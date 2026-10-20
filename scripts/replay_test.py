@@ -15,26 +15,27 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-from scripts.extract_landmarks import TMP, collect_videos, is_blue_frame, read_frames  # noqa: E402
+from scripts.extract_landmarks import TMP, is_blue_frame, raw_videos, read_frames  # noqa: E402
 from src.common.config import DATA, MODELS, NATIVE_FPS, load_label_map  # noqa: E402
 from src.common.views import webcam_view  # noqa: E402
 from src.inference.predictor import JSLPredictor  # noqa: E402
 
 LEAD, TAIL = 30, 45
-TARGET = 22
+TARGET_RATE = 0.88          # >= 88% of signs (22/25 in the original spec)
 
 
 def replay(fps: float = NATIVE_FPS, zoom: float = 1.0) -> dict:
-    """Run the replay over all 25 videos; return a report dict."""
+    """Run the replay over all reference videos; return a report dict."""
     import shutil
 
-    zips = sorted((DATA / "raw").glob("*.zip"))
-    videos = collect_videos(zips[0] if zips else None, None if zips else DATA / "raw")
+    videos = raw_videos()
     label_map = load_label_map()
     pred = JSLPredictor()
     if pred.mode != "model":
@@ -68,13 +69,14 @@ def replay(fps: float = NATIVE_FPS, zoom: float = 1.0) -> dict:
     finally:
         pred.close()
         shutil.rmtree(TMP, ignore_errors=True)
+    target = int(np.ceil(TARGET_RATE * len(rows)))
     report = {"fps": fps, "zoom": zoom, "correct_first_emission": lenient, "only_correct_emission": strict,
-              "total": len(rows), "target": TARGET, "rows": rows}
+              "total": len(rows), "target": target, "rows": rows}
     name = "replay_report" + ("" if fps == NATIVE_FPS else f"_{fps:g}fps") + ("" if zoom == 1 else f"_zoom{zoom:g}") + ".json"
     with open(MODELS / name, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
     print(f"\nReplay @ {fps:g} fps, zoom {zoom:g}: {lenient}/{len(rows)} signs correctly emitted first "
-          f"({strict}/{len(rows)} with no other emission). Target >= {TARGET}.")
+          f"({strict}/{len(rows)} with no other emission). Target >= {target}.")
     return report
 
 
@@ -85,4 +87,4 @@ if __name__ == "__main__":
     ap.add_argument("--zoom", type=float, default=1.0)
     a = ap.parse_args()
     r = replay(a.fps, a.zoom)
-    sys.exit(0 if r["correct_first_emission"] >= TARGET else 1)
+    sys.exit(0 if r["correct_first_emission"] >= r["target"] else 1)

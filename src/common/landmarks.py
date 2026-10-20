@@ -8,8 +8,8 @@ Raw layout (RAW_DIM floats):
     [0:63]     left hand 21 x (x, y, z)        [63:126]  right hand
     [126:128]  left / right hand present
     [128:260]  pose 33 x (x, y, z, visibility)
-    [260:659]  face: FACE_KEEP points x (x, y, z)
-    659 face present, 660 pose present, 661 aspect ratio
+    [260:689]  face: FACE_KEEP points x (x, y, z) - lips, eyes, irises, brows, face oval, nose
+    689 face present, 690 pose present, 691 aspect ratio
 """
 from __future__ import annotations
 
@@ -31,7 +31,8 @@ def _pts(edges) -> list[int]:
 
 FACE_KEEP = sorted(set(_pts(_fm.FACEMESH_LIPS) + _pts(_fm.FACEMESH_LEFT_EYE) + _pts(_fm.FACEMESH_RIGHT_EYE)
                        + _pts(_fm.FACEMESH_LEFT_EYEBROW) + _pts(_fm.FACEMESH_RIGHT_EYEBROW)
-                       + _pts(_fm.FACEMESH_FACE_OVAL) + [1, 2, 4, 98, 327]))
+                       + _pts(_fm.FACEMESH_FACE_OVAL) + [1, 2, 4, 98, 327]
+                       + list(range(468, 478))))           # irises (refined face mesh): 468 right, 473 left centre
 FACE_POS = {idx: i for i, idx in enumerate(FACE_KEEP)}
 
 R_HAND_L, R_HAND_R, R_HAND_P = slice(0, 63), slice(63, 126), slice(126, 128)
@@ -53,7 +54,7 @@ class LandmarkExtractor:
         self.pose = mp.solutions.pose.Pose(static_image_mode=static, model_complexity=0,
                                            min_detection_confidence=0.5, min_tracking_confidence=0.5)
         self.face = mp.solutions.face_mesh.FaceMesh(static_image_mode=static, max_num_faces=1,
-                                                    refine_landmarks=False, min_detection_confidence=0.5,
+                                                    refine_landmarks=True, min_detection_confidence=0.5,
                                                     min_tracking_confidence=0.5) if face else None
         self.pose_every, self.n = max(1, pose_every), 0
         self.last_pose: tuple[np.ndarray, bool, object] = (np.zeros(132, np.float32), False, None)

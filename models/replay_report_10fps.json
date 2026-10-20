@@ -1,10 +1,10 @@
 {
   "fps": 10.0,
   "zoom": 1.0,
-  "correct_first_emission": 25,
-  "only_correct_emission": 25,
-  "total": 25,
-  "target": 22,
+  "correct_first_emission": 50,
+  "only_correct_emission": 50,
+  "total": 50,
+  "target": 44,
   "rows": [
     {
       "id": "00",
@@ -13,7 +13,7 @@
         [
           "〜から",
           3.4,
-          0.8189
+          0.8724
         ]
       ],
       "correct": true,
@@ -25,8 +25,8 @@
       "emitted": [
         [
           "ありがとう",
-          3.4,
-          0.8463
+          3.6,
+          0.8554
         ]
       ],
       "correct": true,
@@ -39,7 +39,7 @@
         [
           "ある",
           3.6,
-          0.8969
+          0.9059
         ]
       ],
       "correct": true,
@@ -52,7 +52,7 @@
         [
           "いくつか",
           3.9,
-          0.8188
+          0.8993
         ]
       ],
       "correct": true,
@@ -64,8 +64,8 @@
       "emitted": [
         [
           "いる",
-          3.6,
-          0.7766
+          3.5,
+          0.83
         ]
       ],
       "correct": true,
@@ -77,8 +77,8 @@
       "emitted": [
         [
           "いろいろ",
-          3.6,
-          0.8411
+          3.5,
+          0.934
         ]
       ],
       "correct": true,
@@ -91,7 +91,7 @@
         [
           "おとな",
           3.7,
-          0.691
+          0.6312
         ]
       ],
       "correct": true,
@@ -103,8 +103,8 @@
       "emitted": [
         [
           "けれども",
-          3.4,
-          0.9027
+          3.5,
+          0.8477
         ]
       ],
       "correct": true,
@@ -117,7 +117,7 @@
         [
           "とても",
           3.5,
-          0.8465
+          0.771
         ]
       ],
       "correct": true,
@@ -129,8 +129,8 @@
       "emitted": [
         [
           "どちら",
-          3.6,
-          0.7121
+          3.4,
+          0.8442
         ]
       ],
       "correct": true,
@@ -142,8 +142,8 @@
       "emitted": [
         [
           "ほとんど",
-          3.6,
-          0.682
+          3.5,
+          0.7492
         ]
       ],
       "correct": true,
@@ -155,8 +155,8 @@
       "emitted": [
         [
           "みんな",
-          3.3,
-          0.8908
+          3.4,
+          0.8901
         ]
       ],
       "correct": true,
@@ -169,7 +169,7 @@
         [
           "もらう",
           3.7,
-          0.629
+          0.6314
         ]
       ],
       "correct": true,
@@ -182,7 +182,7 @@
         [
           "ゴルフ",
           3.9,
-          0.7501
+          0.7426
         ]
       ],
       "correct": true,
@@ -195,7 +195,7 @@
         [
           "コーヒー",
           3.6,
-          0.8852
+          0.7886
         ]
       ],
       "correct": true,
@@ -208,7 +208,7 @@
         [
           "サッカー",
           3.5,
-          0.834
+          0.8633
         ]
       ],
       "correct": true,
@@ -221,7 +221,7 @@
         [
           "サークル",
           3.7,
-          0.8823
+          0.8276
         ]
       ],
       "correct": true,
@@ -233,8 +233,8 @@
       "emitted": [
         [
           "スキー",
-          3.4,
-          0.8478
+          3.5,
+          0.8241
         ]
       ],
       "correct": true,
@@ -246,8 +246,8 @@
       "emitted": [
         [
           "スケート",
-          4.0,
-          0.6241
+          3.8,
+          0.6904
         ]
       ],
       "correct": true,
@@ -260,7 +260,7 @@
         [
           "スポーツ",
           3.4,
-          0.75
+          0.783
         ]
       ],
       "correct": true,
@@ -272,8 +272,8 @@
       "emitted": [
         [
           "テレビ",
-          3.4,
-          0.7537
+          3.7,
+          0.6305
         ]
       ],
       "correct": true,
@@ -285,8 +285,8 @@
       "emitted": [
         [
           "ネズミ",
-          3.5,
-          0.8853
+          3.6,
+          0.8399
         ]
       ],
       "correct": true,
@@ -298,8 +298,8 @@
       "emitted": [
         [
           "バレーボール",
-          3.4,
-          0.8556
+          3.5,
+          0.9188
         ]
       ],
       "correct": true,
@@ -311,8 +311,8 @@
       "emitted": [
         [
           "ビール",
-          3.5,
-          0.8731
+          3.4,
+          0.8464
         ]
       ],
       "correct": true,
@@ -324,8 +324,333 @@
       "emitted": [
         [
           "ピアノ",
+          3.0,
+          0.7942
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "25",
+      "label": "みる",
+      "emitted": [
+        [
+          "みる",
           3.3,
-          0.8446
+          0.8853
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "26",
+      "label": "ラーメン",
+      "emitted": [
+        [
+          "ラーメン",
+          3.7,
+          0.8418
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "27",
+      "label": "一緒",
+      "emitted": [
+        [
+          "一緒",
+          3.7,
+          0.6431
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "28",
+      "label": "下手",
+      "emitted": [
+        [
+          "下手",
+          3.5,
+          0.8689
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "29",
+      "label": "今日",
+      "emitted": [
+        [
+          "今日",
+          3.4,
+          0.8186
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "30",
+      "label": "休憩",
+      "emitted": [
+        [
+          "休憩",
+          4.3,
+          0.8029
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "31",
+      "label": "会社",
+      "emitted": [
+        [
+          "会社",
+          3.4,
+          0.8441
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "32",
+      "label": "元気",
+      "emitted": [
+        [
+          "元気",
+          3.3,
+          0.9098
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "33",
+      "label": "兄",
+      "emitted": [
+        [
+          "兄",
+          3.5,
+          0.8695
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "34",
+      "label": "夏",
+      "emitted": [
+        [
+          "夏",
+          3.7,
+          0.8744
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "35",
+      "label": "嫌い",
+      "emitted": [
+        [
+          "嫌い",
+          3.3,
+          0.8847
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "36",
+      "label": "安心",
+      "emitted": [
+        [
+          "安心",
+          3.6,
+          0.8637
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "37",
+      "label": "家",
+      "emitted": [
+        [
+          "家",
+          3.2,
+          0.9169
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "38",
+      "label": "家族",
+      "emitted": [
+        [
+          "家族",
+          3.7,
+          0.9083
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "39",
+      "label": "帰る",
+      "emitted": [
+        [
+          "帰る",
+          3.5,
+          0.8221
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "40",
+      "label": "教わる",
+      "emitted": [
+        [
+          "教わる",
+          3.6,
+          0.6989
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "41",
+      "label": "映画",
+      "emitted": [
+        [
+          "映画",
+          3.5,
+          0.747
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "42",
+      "label": "楽しい",
+      "emitted": [
+        [
+          "楽しい",
+          3.6,
+          0.8429
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "43",
+      "label": "泣く",
+      "emitted": [
+        [
+          "泣く",
+          3.7,
+          0.8742
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "44",
+      "label": "犬",
+      "emitted": [
+        [
+          "犬",
+          3.7,
+          0.8273
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "45",
+      "label": "考える",
+      "emitted": [
+        [
+          "考える",
+          3.5,
+          0.8792
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "46",
+      "label": "苦手",
+      "emitted": [
+        [
+          "苦手",
+          3.5,
+          0.8009
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "47",
+      "label": "雨",
+      "emitted": [
+        [
+          "雨",
+          3.4,
+          0.8059
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "48",
+      "label": "飲む",
+      "emitted": [
+        [
+          "飲む",
+          3.5,
+          0.8223
+        ]
+      ],
+      "correct": true,
+      "only_correct": true
+    },
+    {
+      "id": "49",
+      "label": "魚",
+      "emitted": [
+        [
+          "魚",
+          3.9,
+          0.9194
         ]
       ],
       "correct": true,

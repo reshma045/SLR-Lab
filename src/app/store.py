@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS detections (
   id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL, session TEXT, sign TEXT, english TEXT,
   confidence REAL, claude_status TEXT, claude_sign TEXT, claude_confidence TEXT,
   claude_reason TEXT, claude_model TEXT, claude_latency REAL);
+CREATE TABLE IF NOT EXISTS sentences (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL, glosses TEXT, japanese TEXT, english TEXT, model TEXT);
 CREATE TABLE IF NOT EXISTS tests (
   id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL, run TEXT, profile TEXT, target TEXT,
   predicted TEXT, correct INTEGER, latency_s REAL, confidence REAL, model_mtime REAL);
@@ -62,7 +64,7 @@ def detection_stats() -> dict:
         today = c.execute("SELECT COUNT(*) FROM detections WHERE ts >= ?", (time.time() - 86400,)).fetchone()[0]
         avg = c.execute("SELECT AVG(confidence) FROM detections").fetchone()[0]
         checked = c.execute("SELECT COUNT(*), SUM(claude_sign = sign) FROM detections WHERE claude_status='done'").fetchone()
-        top = c.execute("SELECT sign, COUNT(*) n FROM detections GROUP BY sign ORDER BY n DESC LIMIT 25").fetchall()
+        top = c.execute("SELECT sign, COUNT(*) n FROM detections GROUP BY sign ORDER BY n DESC LIMIT 60").fetchall()
         return {"total": total, "last_24h": today, "avg_confidence": avg or 0,
                 "claude_checked": checked[0], "claude_agreed": checked[1] or 0,
                 "by_sign": [dict(r) for r in top]}
@@ -116,3 +118,14 @@ def to_csv(rows: list[dict]) -> str:
             r["ts"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(r["ts"]))
         w.writerow(r)
     return "﻿" + buf.getvalue()
+
+
+def add_sentence(glosses: list[str], japanese: str, english: str, model: str | None) -> None:
+    with _lock, _conn() as c:
+        c.execute("INSERT INTO sentences (ts, glosses, japanese, english, model) VALUES (?,?,?,?,?)",
+                  (time.time(), " ".join(glosses), japanese, english, model))
+
+
+def sentences(limit: int = 200) -> list[dict]:
+    with _lock, _conn() as c:
+        return [dict(r) for r in c.execute("SELECT * FROM sentences ORDER BY id DESC LIMIT ?", (limit,)).fetchall()]

@@ -192,3 +192,27 @@ def tests_csv() -> Response:
 def clear_tests() -> dict:
     store.clear_tests()
     return {"ok": True}
+
+
+# ------------------------------------------------------------------ sentence mode
+@router.post("/sentence")
+def make_sentence(body: dict = Body(...)) -> dict:
+    """Recognised sign sequence -> natural Japanese + English (Claude if configured)."""
+    glosses = [str(g) for g in body.get("glosses", [])][:30]
+    if verifier is None:
+        raise HTTPException(503, "Verifier not initialised")
+    s = settings.load()["claude"]
+    if s["enabled"]:
+        res = verifier.sentence(glosses, s["model"])
+    else:
+        english = [verifier.english.get(g, "") for g in glosses]
+        res = {"status": "fallback", "japanese": "・".join(glosses), "english": " / ".join(e for e in english if e),
+               "note": "Claude is disabled in Settings - showing the sign sequence only"}
+    if glosses:
+        store.add_sentence(glosses, res.get("japanese", ""), res.get("english", ""), res.get("model"))
+    return res
+
+
+@router.get("/sentences")
+def list_sentences() -> dict:
+    return {"rows": store.sentences()}

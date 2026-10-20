@@ -3,7 +3,8 @@
 Hands:  scale-free shapes (wrist-relative / palm length), wrist + elbow positions relative to the
         shoulders (in shoulder widths), fingertip positions relative to the nose (contact with face).
 Face:   4 lip contours normalised to the mouth (mouthing / lip movement), mouth opening, eye
-        opening, eyebrow raise, head tilt.
+        opening, eyeball direction (iris position in each eye), inner + outer eyebrow height per
+        side (raise vs. frown), head tilt.
 Motion: velocity over 1 and 2 steps is appended on the 60-step model input (`add_motion`).
 
 Mirroring (left-handed signer augmentation) is a fixed index permutation + sign flip
@@ -13,7 +14,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from src.common.config import (BROWS, ELBOWS, EYES, FEATURE_DIM, LIPS, MOUTH, NOSE, POS_L, POS_R,
+from src.common.config import (BROWS, ELBOWS, EYES, FEATURE_DIM, GAZE, LIPS, MOUTH, NOSE, POS_L, POS_R,
                                PRESENT, ROLL, SHAPE_L, SHAPE_R, TIPS)
 from src.common.landmarks import (FACE_KEEP, FACE_POS, LIP_CONTOURS, P_LEL, P_LSH, P_NOSE, P_REL,
                                   P_RSH, R_FACE, R_FACE_P, R_HAND_L, R_HAND_P, R_HAND_R, R_POSE,
@@ -69,13 +70,24 @@ def sequence_features(raw: np.ndarray) -> np.ndarray:
         (LIPS, lips.reshape(T, -1)),
         (MOUTH, np.stack([_norm(F(13) - F(14)) / mw, mw / fw[:, 0]], 1)),
         (EYES, np.stack([_norm(F(386) - F(374)), _norm(F(159) - F(145))], 1) / fw),
-        (BROWS, np.stack([_norm(F(334) - F(386)), _norm(F(105) - F(159))], 1) / fw),
+        (BROWS, np.stack([_norm(F(336) - F(386)), _norm(F(300) - F(386)),       # left inner / outer
+                          _norm(F(107) - F(159)), _norm(F(70) - F(159))], 1) / fw),  # right inner / outer
+        (GAZE, np.concatenate([_gaze(F(362), F(263), F(473)), _gaze(F(33), F(133), F(468))], 1)),
         (ROLL, (F(263) - F(33)) / np.maximum(_norm(F(263) - F(33)), 1e-4)[:, None]),
     ]
     for sl, val in face_feats:
         out[:, sl] = np.where(face_ok[:, None], val, 0)
     out[:, PRESENT] = np.stack([hand_ok[:, 0], hand_ok[:, 1], face_ok, body_ok], 1).astype(np.float32)
     return out
+
+
+def _gaze(a: np.ndarray, b: np.ndarray, iris: np.ndarray) -> np.ndarray:
+    """Iris centre relative to the eye: (horizontal, vertical) offset from the eye centre in eye
+    widths, along / across the eye-corner axis a -> b (a = the corner on the image's left)."""
+    w = np.maximum(_norm(b - a), 1e-4)[:, None]
+    u = (b - a) / w
+    d = iris - (a + b) / 2
+    return np.stack([(d * u).sum(1), d[:, 1] * u[:, 0] - d[:, 0] * u[:, 1]], 1) / w
 
 
 def frame_features(raw: np.ndarray) -> np.ndarray:
@@ -130,9 +142,11 @@ def _build_mirror() -> tuple[np.ndarray, np.ndarray]:
     perm[_r(POS_L)], perm[_r(POS_R)] = _r(POS_R), _r(POS_L)
     e = _r(ELBOWS)
     perm[e] = e[[2, 3, 0, 1]]
-    for sl in (EYES, BROWS):                                        # (left, right) -> (right, left)
+    r = _r(EYES)
+    perm[r] = r[::-1]                                               # (left, right) -> (right, left)
+    for sl in (BROWS, GAZE):                                        # (L a, L b, R a, R b) -> (R a, R b, L a, L b)
         r = _r(sl)
-        perm[r] = r[::-1]
+        perm[r] = r[[2, 3, 0, 1]]
     t = _r(TIPS)
     perm[t] = t[[4, 5, 6, 7, 0, 1, 2, 3]]
     p = _r(PRESENT)
@@ -144,6 +158,7 @@ def _build_mirror() -> tuple[np.ndarray, np.ndarray]:
                lip[..., 0].ravel(), t[::2]]
     sign[xs] = -1
     sign[ROLL.start + 1] = -1                                       # tilt vector: (dx, dy) -> (dx, -dy)
+    sign[[GAZE.start, GAZE.start + 2]] = -1                         # looking left <-> looking right
     return perm, sign
 
 
@@ -158,4 +173,4 @@ BODY_Y = BODY_X + 1
 # which presence flags each block needs: (indices, [flag offsets that must all be 1])
 BLOCKS = [(_r(SHAPE_L), [0]), (_r(SHAPE_R), [1]), (_r(POS_L), [0, 3]), (_r(POS_R), [1, 3]),
           (_r(ELBOWS), [3]), (_r(NOSE), [3]), (_r(LIPS), [2]), (_r(MOUTH), [2]), (_r(EYES), [2]),
-          (_r(BROWS), [2]), (_r(ROLL), [2]), (_r(TIPS)[:4], [0, 2]), (_r(TIPS)[4:], [1, 2])]
+          (_r(BROWS), [2]), (_r(GAZE), [2]), (_r(ROLL), [2]), (_r(TIPS)[:4], [0, 2]), (_r(TIPS)[4:], [1, 2])]

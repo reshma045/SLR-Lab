@@ -21,7 +21,7 @@
     "signing_frames": 104,
     "hand_detection_rate": 1.0,
     "pose_detection_rate": 1.0,
-    "face_detection_rate": 1.0
+    "face_detection_rate": 0.962
   },
   "03": {
     "label": "いくつか",
@@ -69,7 +69,7 @@
     "signing_frames": 108,
     "hand_detection_rate": 1.0,
     "pose_detection_rate": 1.0,
-    "face_detection_rate": 1.0
+    "face_detection_rate": 0.917
   },
   "09": {
     "label": "どちら",
@@ -85,7 +85,7 @@
     "signing_frames": 101,
     "hand_detection_rate": 0.97,
     "pose_detection_rate": 1.0,
-    "face_detection_rate": 0.941
+    "face_detection_rate": 0.95
   },
   "11": {
     "label": "みんな",
@@ -181,7 +181,7 @@
     "signing_frames": 114,
     "hand_detection_rate": 0.982,
     "pose_detection_rate": 1.0,
-    "face_detection_rate": 0.982
+    "face_detection_rate": 1.0
   },
   "23": {
     "label": "ビール",
@@ -195,6 +195,206 @@
     "label": "ピアノ",
     "total_frames": 146,
     "signing_frames": 106,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "25": {
+    "label": "みる",
+    "total_frames": 141,
+    "signing_frames": 88,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "26": {
+    "label": "ラーメン",
+    "total_frames": 154,
+    "signing_frames": 114,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "27": {
+    "label": "一緒",
+    "total_frames": 167,
+    "signing_frames": 107,
+    "hand_detection_rate": 0.972,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "28": {
+    "label": "下手",
+    "total_frames": 128,
+    "signing_frames": 102,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "29": {
+    "label": "今日",
+    "total_frames": 137,
+    "signing_frames": 89,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "30": {
+    "label": "休憩",
+    "total_frames": 180,
+    "signing_frames": 143,
+    "hand_detection_rate": 0.951,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "31": {
+    "label": "会社",
+    "total_frames": 172,
+    "signing_frames": 118,
+    "hand_detection_rate": 0.992,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 0.992
+  },
+  "32": {
+    "label": "元気",
+    "total_frames": 124,
+    "signing_frames": 102,
+    "hand_detection_rate": 0.98,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "33": {
+    "label": "兄",
+    "total_frames": 138,
+    "signing_frames": 100,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 0.65
+  },
+  "34": {
+    "label": "夏",
+    "total_frames": 140,
+    "signing_frames": 116,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 0.914
+  },
+  "35": {
+    "label": "嫌い",
+    "total_frames": 144,
+    "signing_frames": 105,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "36": {
+    "label": "安心",
+    "total_frames": 162,
+    "signing_frames": 102,
+    "hand_detection_rate": 0.99,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "37": {
+    "label": "家",
+    "total_frames": 146,
+    "signing_frames": 108,
+    "hand_detection_rate": 0.981,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "38": {
+    "label": "家族",
+    "total_frames": 120,
+    "signing_frames": 102,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "39": {
+    "label": "帰る",
+    "total_frames": 118,
+    "signing_frames": 107,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "40": {
+    "label": "教わる",
+    "total_frames": 140,
+    "signing_frames": 100,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "41": {
+    "label": "映画",
+    "total_frames": 160,
+    "signing_frames": 106,
+    "hand_detection_rate": 0.991,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "42": {
+    "label": "楽しい",
+    "total_frames": 130,
+    "signing_frames": 100,
+    "hand_detection_rate": 0.99,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "43": {
+    "label": "泣く",
+    "total_frames": 133,
+    "signing_frames": 102,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "44": {
+    "label": "犬",
+    "total_frames": 154,
+    "signing_frames": 118,
+    "hand_detection_rate": 0.983,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "45": {
+    "label": "考える",
+    "total_frames": 153,
+    "signing_frames": 113,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "46": {
+    "label": "苦手",
+    "total_frames": 158,
+    "signing_frames": 117,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "47": {
+    "label": "雨",
+    "total_frames": 150,
+    "signing_frames": 101,
+    "hand_detection_rate": 0.96,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "48": {
+    "label": "飲む",
+    "total_frames": 144,
+    "signing_frames": 119,
+    "hand_detection_rate": 1.0,
+    "pose_detection_rate": 1.0,
+    "face_detection_rate": 1.0
+  },
+  "49": {
+    "label": "魚",
+    "total_frames": 177,
+    "signing_frames": 117,
     "hand_detection_rate": 1.0,
     "pose_detection_rate": 1.0,
     "face_detection_rate": 1.0

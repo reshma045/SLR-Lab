@@ -24,3 +24,5 @@ data/landmarks_raw/
 data/landmarks_raw_aug/
 models/prototypes.npz
 models/prototypes.tmp.npz
+data/landmarks_raw_extra/
+data/_tmp_import/

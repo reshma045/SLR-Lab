@@ -26,7 +26,10 @@
       <a class="btn sm" href="/api/history.csv">Export CSV</a><button class="btn sm danger" id="clearBtn">Clear</button></h2>
       <div class="tablewrap" style="max-height:70vh"><table><thead><tr><th>Time</th><th>Sign</th><th>Confidence</th><th>Claude</th><th>Claude's reason</th></tr></thead>
         <tbody id="rows"></tbody></table></div></section>
-    <section class="card"><h2>Most recognised</h2><div class="chartwrap"><canvas id="chart"></canvas></div></section>
+    <div class="grid">
+      <section class="card"><h2>Most recognised</h2><div class="chartwrap"><canvas id="chart"></canvas></div></section>
+      <section class="card"><h2>Sentences (sentence mode)</h2><div class="tablewrap" style="max-height:40vh"><table><thead><tr><th>Time</th><th>Signs</th><th>Sentence</th></tr></thead><tbody id="sents"></tbody></table></div></section>
+    </div>
   </div>
 </div>
 <script src="/static/common.js"></script>
@@ -56,6 +59,13 @@
       else { chart.data.labels = labels; chart.data.datasets[0].data = vals; chart.update(); }
     }
   }
+  async function loadSentences() {
+    const r = await JSL.api("/api/sentences");
+    $("sents").innerHTML = r.rows.map(x => `<tr><td class="small">${JSL.time(x.ts)}</td><td class="jp small">${JSL.esc(x.glosses)}</td>
+      <td style="white-space:normal"><span class="jp">${JSL.esc(x.japanese)}</span><br><span class="muted small">${JSL.esc(x.english)}</span></td></tr>`).join("")
+      || `<tr><td colspan="3" class="muted">Use Sentence mode on the Live page.</td></tr>`;
+  }
+  loadSentences(); setInterval(loadSentences, 10000);
   let deb; $("q").oninput = () => { clearTimeout(deb); deb = setTimeout(load, 250); };
   $("clearBtn").onclick = async () => { if (confirm("Delete the whole detection history?")) { await JSL.api("/api/history", { method: "DELETE" }); load(); } };
   load(); setInterval(load, 10000);

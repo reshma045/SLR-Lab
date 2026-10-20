@@ -22,7 +22,8 @@ DEFAULTS: dict = {
     "display": {"show_glove": False, "show_top3": True, "theme": "dark", "history_len": 8},
     "claude": {"enabled": True, "mode": "auto", "model": "claude-haiku-5-5", "uncertain_below": 0.8},
     "record": {"duration_s": 4.0, "countdown_s": 3, "target_per_sign": 5},
-    "test": {"timeout_s": 7.0, "rounds": 25, "show_reference": False},
+    "test": {"timeout_s": 7.0, "rounds": 50, "show_reference": False},
+    "sentence": {"auto_translate_after_s": 4.0},
 }
 LIMITS = {  # (min, max) for numeric fields
     "recognition.conf_threshold": (0.2, 0.99), "recognition.streak": (1, 20),
@@ -30,7 +31,7 @@ LIMITS = {  # (min, max) for numeric fields
     "camera.send_fps": (5, 30), "camera.jpeg_quality": (0.3, 0.95),
     "display.history_len": (3, 20), "claude.uncertain_below": (0.3, 1.0),
     "record.duration_s": (2.0, 8.0), "record.countdown_s": (0, 10), "record.target_per_sign": (1, 50),
-    "test.timeout_s": (3.0, 20.0), "test.rounds": (1, 200),
+    "test.timeout_s": (3.0, 20.0), "test.rounds": (1, 200), "sentence.auto_translate_after_s": (0.0, 15.0),
 }
 _lock = threading.Lock()
 

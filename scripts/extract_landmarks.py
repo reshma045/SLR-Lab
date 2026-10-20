@@ -56,8 +56,15 @@ def decode_zip_name(raw: str) -> str:
     return nfc(raw)
 
 
-def collect_videos(zip_path: Path | None, videos_dir: Path | None) -> dict[str, Path]:
-    """Return {NFC label: ascii-named temp copy of the mp4}."""
+def raw_videos() -> dict[str, Path]:
+    """All reference videos in data/raw/: every *.zip plus loose *.mp4 files."""
+    zips = sorted((DATA / "raw").glob("*.zip"))
+    has_mp4 = bool(list((DATA / "raw").glob("*.mp4")))
+    return collect_videos(zips, DATA / "raw" if has_mp4 else None)
+
+
+def collect_videos(zip_path, videos_dir: Path | None) -> dict[str, Path]:
+    """Return {NFC label: ascii-named temp copy of the mp4} from one zip / a list of zips / a folder."""
     if TMP.exists():
         shutil.rmtree(TMP)
     TMP.mkdir(parents=True)
@@ -72,8 +79,9 @@ def collect_videos(zip_path: Path | None, videos_dir: Path | None) -> dict[str, 
         found[label] = dst
         n += 1
 
-    if zip_path:
-        with zipfile.ZipFile(zip_path) as zf:
+    zip_paths = [] if not zip_path else (zip_path if isinstance(zip_path, (list, tuple)) else [zip_path])
+    for zp in zip_paths:
+        with zipfile.ZipFile(zp) as zf:
             for info in zf.infolist():
                 base = info.filename.replace("\\", "/").split("/")[-1]
                 if info.is_dir() or "__MACOSX" in info.filename or base.startswith("."):
@@ -82,7 +90,7 @@ def collect_videos(zip_path: Path | None, videos_dir: Path | None) -> dict[str, 
                     continue
                 label = decode_zip_name(base)[:-4]
                 add(label, lambda out, i=info: shutil.copyfileobj(zf.open(i), out))
-    else:
+    if videos_dir:
         for p in sorted(videos_dir.glob("*.mp4")):
             label = nfc(p.stem)
             add(label, lambda out, p=p: shutil.copyfileobj(open(p, "rb"), out))
@@ -117,13 +125,10 @@ def main() -> None:
     zooms = [float(z) for z in args.zooms.split(",") if z.strip()]
 
     zip_path, vdir = args.zip, args.videos_dir
-    if not zip_path and not vdir:
-        zips = sorted((DATA / "raw").glob("*.zip"))
-        if zips:
-            zip_path = zips[0]
-        elif list((DATA / "raw").glob("*.mp4")):
-            vdir = DATA / "raw"
-        else:
+    if not zip_path and not vdir:                   # default: every zip and mp4 in data/raw/
+        zip_path = sorted((DATA / "raw").glob("*.zip"))
+        vdir = DATA / "raw" if list((DATA / "raw").glob("*.mp4")) else None
+        if not zip_path and not vdir:
             sys.exit("No zip or mp4 files found in data/raw/ (use --zip or --videos-dir)")
 
     label_map = load_label_map()

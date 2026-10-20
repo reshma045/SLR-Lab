@@ -24,17 +24,18 @@ NOSE = slice(136, 138)     # nose (x, y) rel. shoulders
 LIPS = slice(138, 226)     # 4 lip contours x 11 points x (x, y), rel. mouth centre / mouth width
 MOUTH = slice(226, 228)    # mouth opening / mouth width, mouth width / face width
 EYES = slice(228, 230)     # left, right eye opening / face width
-BROWS = slice(230, 232)    # left, right eyebrow height above the eye / face width
-ROLL = slice(232, 234)     # unit vector right eye -> left eye (head tilt)
-TIPS = slice(234, 242)     # L thumb, L index, R thumb, R index tip (x, y) rel. nose / face width
-PRESENT = slice(242, 246)  # left hand, right hand, face, body (shoulders) detected
-FEATURE_DIM = 246
+BROWS = slice(230, 234)    # L inner, L outer, R inner, R outer eyebrow height above the eye / face width
+GAZE = slice(234, 238)     # L horiz, L vert, R horiz, R vert: iris position within the eye / eye width
+ROLL = slice(238, 240)     # unit vector right eye -> left eye (head tilt)
+TIPS = slice(240, 248)     # L thumb, L index, R thumb, R index tip (x, y) rel. nose / face width
+PRESENT = slice(248, 252)  # left hand, right hand, face, body (shoulders) detected
+FEATURE_DIM = 252
 MODEL_IN = FEATURE_DIM * 3  # + velocity over 1 and 2 steps (added on the 60-step model input)
 WINDOW = 96                # live rolling buffer length (~3.2 s at 30 fps)
 MODEL_LEN = 60             # frames fed to the model after resampling
 NATIVE_FPS = 30.0
-NUM_SIGNS = 25
-IDLE_INDEX = 25            # extra "no sign" class
+NUM_SIGNS = len(json.loads((DATA / "label_map.json").read_text(encoding="utf-8")))  # 50 signs
+IDLE_INDEX = NUM_SIGNS     # extra "no sign" class (always last)
 NUM_CLASSES = NUM_SIGNS + 1
 IDLE_LABEL = "—"
 
@@ -57,6 +58,6 @@ def load_english() -> dict[str, str]:
 
 
 def class_names() -> list[str]:
-    """Class index -> display name; index 25 is the idle class."""
+    """Class index -> display name; the last index is the idle class."""
     lm = load_label_map()
     return [lm[f"{i:02d}"] for i in range(NUM_SIGNS)] + [IDLE_LABEL]

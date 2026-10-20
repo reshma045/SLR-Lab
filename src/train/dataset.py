@@ -5,7 +5,7 @@ slide a 96-frame window over it so that most of the active sign ("core") is insi
 outside the recording with zeros / rest frames, augment, resample to 60. Idle samples come from
 empty frames, rest poses, and partial signs (first <=50% / last <=30% of a sign).
 
-Sequences come from the 25 reference videos and, if present, the user's own recordings
+Sequences come from the reference videos and, if present, the user's own recordings
 (data/user/<profile>/<sign id>/*.npy, recorded from the dashboard). When the user has >= 3
 recordings of a sign, the newest one is held out as a *real* validation example.
 """
@@ -81,6 +81,11 @@ def load_signs(profile: str | None = "default") -> tuple[list[SignSeq], list[Sig
     for d in sorted(aug.iterdir()) if aug.exists() else []:
         train += [_make(i, np.load(d / f"{i:02d}.npy"), "ref", f"{d.name}/{i:02d}")
                   for i in range(NUM_SIGNS) if (d / f"{i:02d}.npy").exists()]
+    extra = DATA / "landmarks_raw_extra"               # other signers / datasets (scripts/import_videos.py)
+    for f in sorted(extra.glob("*/*/*.npy")) if extra.exists() else []:
+        sid, raw = int(f.parent.name), _load_raw(f)
+        if raw is not None and sid < NUM_SIGNS and len(raw) >= 30:
+            train.append(_make(sid, raw, "ref", f"{f.parent.parent.name}/{f.parent.name}/{f.stem}"))
     val: list[SignSeq] = []
     base = USER_DATA / profile if profile else None
     if base and base.exists():

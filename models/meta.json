@@ -25,9 +25,34 @@
     "バレーボール",
     "ビール",
     "ピアノ",
+    "みる",
+    "ラーメン",
+    "一緒",
+    "下手",
+    "今日",
+    "休憩",
+    "会社",
+    "元気",
+    "兄",
+    "夏",
+    "嫌い",
+    "安心",
+    "家",
+    "家族",
+    "帰る",
+    "教わる",
+    "映画",
+    "楽しい",
+    "泣く",
+    "犬",
+    "考える",
+    "苦手",
+    "雨",
+    "飲む",
+    "魚",
     "—"
   ],
-  "idle_index": 25,
+  "idle_index": 50,
   "window": 96,
   "model_len": 60,
   "native_fps": 30.0,
@@ -36,14 +61,14 @@
     "shape": [
       "B",
       60,
-      738
+      756
     ],
     "dtype": "float32"
   },
   "outputs": {
     "logits": [
       "B",
-      26
+      51
     ],
     "embedding": [
       "B",
@@ -52,8 +77,8 @@
   },
   "feature_layout": {
     "version": 3,
-    "per_frame_dim": 246,
-    "model_in": 738,
+    "per_frame_dim": 252,
+    "model_in": 756,
     "blocks": "see src/common/config.py: hand shapes, wrist/elbow positions, nose, lips, mouth, eyes, brows, head roll, fingertips-to-face, presence; + velocity over 1 and 2 steps",
     "raw": "src/common/landmarks.py (MediaPipe hands + pose + face mesh subset)",
     "aspect_corrected": true,
@@ -61,7 +86,7 @@
     "temporal": "last 96 frames at 30 fps (time-based) linearly resampled to 60"
   },
   "metrics": {
-    "synthetic_val_top1": 0.9982142857142857,
+    "synthetic_val_top1": 1.0,
     "real_val_top1": null,
     "user_recordings": 0
   }

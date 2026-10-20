@@ -2,7 +2,7 @@
 
 The local OpenCV + MediaPipe + Transformer pipeline stays the real-time classifier. When it emits
 a sign (or the user presses "Ask Claude"), a 6-keyframe sheet of the live clip is sent to Claude
-together with labelled keyframe sheets of the 25 reference videos (prompt-cached), and Claude picks
+together with labelled keyframe sheets of every reference video (prompt-cached), and Claude picks
 the matching sign from the closed list.
 
 Needs ANTHROPIC_API_KEY in the environment or in a git-ignored `.env` file at the repo root.
@@ -133,7 +133,7 @@ class ClaudeVerifier:
 
     def verify(self, frames: list[np.ndarray], local_top3: list[dict] | None = None,
                model: str | None = None) -> dict:
-        """Ask Claude which of the 25 signs the clip shows. Returns a JSON-serialisable dict."""
+        """Ask Claude which of the supported signs the clip shows. Returns a JSON-serialisable dict."""
         if not self.available:
             return {"status": "unavailable", "error": "No API key set (Settings page)"}
         if len(frames) < SHEET_FRAMES:
@@ -145,7 +145,7 @@ class ClaudeVerifier:
                  "Each image is a 3x2 grid of 6 keyframes in time order (1-6), with MediaPipe hand skeletons "
                  "drawn. The person faces the camera and the frames are NOT mirrored, exactly like the "
                  "references. Compare hand shapes, positions relative to the body and face, and motion.")
-        question = (f"Which of the 25 reference signs does this live clip show? Local model top-3: {hint or 'n/a'}. "
+        question = (f"Which of the {len(self.names)} reference signs does this live clip show? Local model top-3: {hint or 'n/a'}. "
                     "Choose \"none\" if no sign is being made or none of the references matches. "
                     "Judge from the images; the local model can be wrong.")
         schema = {"type": "object", "additionalProperties": False,
@@ -186,3 +186,40 @@ class ClaudeVerifier:
         return {"status": "done", "model": model, "sign": sign, "english": self.english.get(sign, "") if sign else "",
                 "confidence": data["confidence"], "reason": data["reason"], "latency_s": latency,
                 "cache_read_tokens": getattr(resp.usage, "cache_read_input_tokens", 0) or 0}
+
+    def sentence(self, glosses: list[str], model: str | None = None) -> dict:
+        """Turn a sequence of recognised JSL signs into a natural Japanese sentence + English."""
+        english = [self.english.get(g, "") for g in glosses]
+        fallback = {"status": "fallback", "japanese": "・".join(glosses), "english": " / ".join(e for e in english if e)}
+        if not glosses:
+            return {**fallback, "status": "empty"}
+        if not self.available:
+            return {**fallback, "note": "No API key - showing the sign sequence only"}
+        import anthropic
+        model = model or self.model
+        kw = self._request_kwargs(model)
+        schema = {"type": "object", "additionalProperties": False, "required": ["japanese", "english"],
+                  "properties": {"japanese": {"type": "string"}, "english": {"type": "string"}}}
+        prompt = ("These Japanese Sign Language (JSL) signs were recognised in this order (JSL word order and "
+                  "grammar differ from spoken Japanese; particles and inflections are not signed):\n"
+                  + "\n".join(f"{i + 1}. {g} ({e})" for i, (g, e) in enumerate(zip(glosses, english)))
+                  + "\n\nWrite the most likely intended meaning as one short, natural Japanese sentence and its "
+                    "English translation. Use only the meaning carried by these signs; do not add new content.")
+        t0 = time.time()
+        try:
+            client = self._get_client()
+            api = client.beta.messages if "betas" in kw else client.messages
+            resp = api.create(model=model, max_tokens=1000,
+                              output_config={"effort": "low", "format": {"type": "json_schema", "schema": schema}},
+                              messages=[{"role": "user", "content": prompt}], **kw)
+        except anthropic.APIError as e:
+            return {**fallback, "note": f"Claude unavailable ({type(e).__name__})"}
+        if resp.stop_reason == "refusal":
+            return {**fallback, "note": "Request declined"}
+        text = next((b.text for b in resp.content if b.type == "text"), "")
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            return {**fallback, "note": "Unparseable response"}
+        return {"status": "done", "japanese": data["japanese"], "english": data["english"], "model": model,
+                "latency_s": round(time.time() - t0, 2)}

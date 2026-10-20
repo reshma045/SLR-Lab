@@ -35,8 +35,8 @@
           <option value="manual">Only when I press “Ask Claude”</option></select></label>
         <label class="field"><span>“Unsure” means below<span class="hint">Used by “only when unsure”.</span></span>
           <span class="row"><input type="range" min="0.3" max="1" step="0.05" data-key="claude.uncertain_below"><span class="val" data-show="claude.uncertain_below" data-fmt="pct"></span></span></label>
-        <p class="note">Claude receives 6 keyframes of your clip (with hand skeletons) plus 25 labelled reference sheets (prompt-cached), and picks
-          one of the 25 signs or “none”. It runs in the background - the live view never waits. <b>Privacy:</b> those keyframes are sent to the
+        <p class="note">Claude receives 6 keyframes of your clip (with hand skeletons) plus labelled reference sheets of every sign (prompt-cached), and picks
+          one of the supported signs or “none”. It runs in the background - the live view never waits. <b>Privacy:</b> those keyframes are sent to the
           Anthropic API only while a key is set and Claude is enabled. Haiku 5.5 is the fastest and cheapest option for real-time use.</p>
       </section>
       <section class="card"><h2>Recognition</h2>
@@ -78,6 +78,8 @@
         <label class="field"><span>Theme</span><select data-key="display.theme"><option value="dark">Dark</option><option value="light">Light</option></select></label>
         <label class="field"><span>Glove panel<span class="hint">Simulated feed - no glove is connected.</span></span><input type="checkbox" data-key="display.show_glove"></label>
         <label class="field"><span>Show top-3</span><input type="checkbox" data-key="display.show_top3"></label>
+        <label class="field"><span>Sentence mode: finish after a pause of (s)<span class="hint">0 = only when you press “Make sentence”. Claude (if enabled) writes the sentence.</span></span>
+          <span class="row"><input type="range" min="0" max="10" step="0.5" data-key="sentence.auto_translate_after_s"><span class="val" data-show="sentence.auto_translate_after_s"></span></span></label>
         <label class="field"><span>History tape length</span><span class="row"><input type="range" min="3" max="20" step="1" data-key="display.history_len"><span class="val" data-show="display.history_len"></span></span></label>
       </section>
     </div>

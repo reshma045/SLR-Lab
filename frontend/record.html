@@ -99,7 +99,7 @@ kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;pad
   async function loadSigns() {
     signs = (await JSL.api("/api/signs")).signs;
     const total = signs.reduce((a, s) => a + s.recordings, 0), done = signs.filter(s => s.recordings >= target).length;
-    $("totals").textContent = `${total} takes · ${done}/25 signs at target (${target})`;
+    $("totals").textContent = `${total} takes · ${done}/${signs.length} signs at target (${target})`;
     $("signs").innerHTML = signs.map(s => `<div class="tile${s.id === sel ? " sel" : ""}" data-id="${s.id}"><b>${JSL.esc(s.sign)}</b>
       <div class="meta"><span>${JSL.esc(s.english)}</span><span>${s.recordings}/${target}</span></div>
       <div class="bar ${s.recordings >= target ? "ok" : ""}"><i style="width:${Math.min(100, s.recordings / target * 100)}%"></i></div></div>`).join("");
@@ -200,7 +200,7 @@ kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;pad
     if (running && !poll) poll = setInterval(refreshTrain, 1500);
     if (!running && poll) { clearInterval(poll); poll = null; }
   }
-  $("trainHint").textContent = `Uses the 25 reference videos plus your takes (your newest take per sign is held out as an honest test once you have ≥3). Takes ~5–15 min on CPU; you can keep using the app.`;
+  $("trainHint").textContent = `Uses the reference videos (+ simulated webcam crops) plus your takes (your newest take per sign is held out as an honest test once you have ≥3). About 10–20 min on the GPU; you can keep using the app.`;
   $("trainBtn").onclick = async () => { const r = await JSL.api("/api/train", { method: "POST", body: {} }); if (!r.started) JSL.toast(r.error, "bad"); refreshTrain(); };
   $("stopBtn").onclick = async () => { await JSL.api("/api/train/stop", { method: "POST" }); refreshTrain(); };
   $("rollbackBtn").onclick = async () => { if (!confirm("Restore the previous model?")) return; await JSL.api("/api/train/rollback", { method: "POST" }); JSL.toast("Previous model restored", "ok"); refreshTrain(); };

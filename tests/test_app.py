@@ -81,9 +81,20 @@ def test_api_endpoints(tmp_app):
     r = c.post("/api/settings", json={"display": {"theme": "light"}}).json()
     assert r["settings"]["display"]["theme"] == "light"
     assert c.post("/api/claude/key", json={"key": "not-a-key"}).status_code == 400
-    assert len(c.get("/api/signs").json()["signs"]) == 25
+    from src.common.config import NUM_SIGNS
+    assert len(c.get("/api/signs").json()["signs"]) == NUM_SIGNS
     assert c.post("/api/tests", json={"run": "x", "target": "ある", "predicted": "ある", "latency_s": 1}).json()["ok"]
     assert c.get("/api/tests").json()["accuracy"] == 1.0
     assert c.get("/api/history.csv").status_code == 200
     for page in ("/", "/record", "/test", "/history", "/settings"):
         assert c.get(page).status_code == 200
+
+
+def test_sentence_endpoint_without_claude(tmp_app):
+    from fastapi.testclient import TestClient
+    from src.inference.server import app
+    c = TestClient(app)
+    c.post("/api/settings", json={"claude": {"enabled": False}})
+    r = c.post("/api/sentence", json={"glosses": ["今日", "雨"]}).json()
+    assert r["status"] == "fallback" and r["japanese"] == "今日・雨" and "Rain" in r["english"]
+    assert c.get("/api/sentences").json()["rows"][0]["glosses"] == "今日 雨"

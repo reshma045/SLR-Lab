@@ -107,3 +107,21 @@ def test_resample_lengths(random_seq):
         out = resample(random_seq[:n], MODEL_LEN)
         assert out.shape == (MODEL_LEN, FEATURE_DIM)
         assert np.allclose(out[0], random_seq[0]) and np.allclose(out[-1], random_seq[n - 1])
+
+
+def test_gaze_and_brows():
+    from src.common.config import BROWS, GAZE
+    raw = _raw()
+    f = raw[R_FACE].reshape(-1, 3)
+    for i, (x, y) in {33: (0.58, 0.28), 133: (0.62, 0.28), 468: (0.60, 0.28),       # right eye, iris centred
+                      362: (0.68, 0.28), 263: (0.72, 0.28), 473: (0.71, 0.28),      # left eye, iris to image-right
+                      107: (0.61, 0.24), 70: (0.58, 0.26), 336: (0.69, 0.24), 300: (0.72, 0.26),
+                      159: (0.60, 0.27), 386: (0.70, 0.27)}.items():
+        f[FACE_POS[i], :2] = (x, y)
+    raw[R_FACE] = f.ravel()
+    v = frame_features(raw)
+    assert np.allclose(v[GAZE][2:], 0, atol=1e-5)                      # right iris in the middle of the eye
+    assert np.isclose(v[GAZE][0], 0.25) and np.isclose(v[GAZE][1], 0)  # left iris a quarter eye-width right
+    assert v[BROWS][0] > 0 and v[BROWS][0] < v[BROWS][1] + 1           # inner / outer heights are measured
+    m = (v[MIRROR_PERM] * MIRROR_SIGN)[GAZE]
+    assert np.isclose(m[2], -0.25)                                     # mirrored: becomes the right eye, flipped

@@ -3,8 +3,10 @@
 Real-time Japanese Sign Language (日本手話) recognition for a Master's thesis at the University of
 Aizu. A webcam feed goes through **OpenCV → MediaPipe Hands + Pose + Face Mesh → a Conv1D +
 Transformer network** (architecture of the 1st-place Kaggle sign-language solution). It sees hand
-shapes, arm and hand positions relative to the body, **lip/mouth movement (mouthing)**, eyes,
-eyebrows and head tilt, and classifies the last ~3.2 s of motion into one of 25 signs (or "no sign"). A dashboard lets you
+shapes, arm and hand positions relative to the body, **lip/mouth movement (mouthing)**, **eyeball
+direction (iris tracking)**, inner/outer **eyebrow** height, eye opening and head tilt, and classifies the
+last ~3.2 s of motion into one of **50 signs** (or "no sign"). **Sentence mode** chains recognised signs
+and lets Claude write a natural Japanese + English sentence. A dashboard lets you
 record your own examples, retrain, measure your real accuracy and, optionally, ask **Claude** for a
 second opinion.
 
@@ -27,7 +29,8 @@ python run_server.py                  # open http://127.0.0.1:8000 in Chrome or 
 ```
 
 `models/jsl_model.onnx` is committed, so the server works immediately. To rebuild everything from
-the videos, put `jsl 25 words.zip` (or the 25 `.mp4` files) in `data/raw/`, then run:
+the videos, put the video zips (`jsl 25 words.zip`, `next 25 words.zip`) or `.mp4` files in `data/raw/`
+(every zip there is used), then run:
 
 ```powershell
 python scripts/extract_landmarks.py --zooms 1.3,1.6,2.1   # features + simulated close-webcam crops (~15 min)
@@ -42,17 +45,17 @@ https://download.pytorch.org/whl/cu126` - supports GTX 10-series and newer); oth
 
 | Page | What it does |
 |---|---|
-| **Live** | Real-time recognition: big sign display, confidence and top-3, hand / shoulder / face status, mouth-movement meter, personal-examples count, session log, Claude verdict (AGREES / DIFFERS), history tape |
-| **Record & Train** | Guided recording of your own takes (countdown, quality check, reference keyframes, progress for all 25 signs). Every saved take is **immediately** used as a personal example (no retraining needed); one-click **retrain** (GPU) with live progress chart and **roll back** |
+| **Live** | Real-time recognition: big sign display, confidence and top-3, hand / shoulder / face status, mouth, **eyes (gaze direction)** and **eyebrow** indicators, personal-examples count, session log, Claude verdict (AGREES / DIFFERS), history tape, **Sentence mode** |
+| **Record & Train** | Guided recording of your own takes (countdown, quality check, reference keyframes, progress for all signs). Every saved take is **immediately** used as a personal example (no retraining needed); one-click **retrain** (GPU) with live progress chart and **roll back** |
 | **Self-test** | Shows a random sign, you perform it, and it records whether it was recognised. Gives real accuracy per sign, what each sign is confused with, past runs, CSV export |
-| **History** | Every recognised sign with confidence and Claude's verdict and reason; search, stats, CSV export |
+| **History** | Every recognised sign with confidence and Claude's verdict and reason; sentences made in Sentence mode; search, stats, CSV export |
 | **Settings** | Claude API key and model, when to ask Claude, connection test; camera picker; recognition thresholds; recording, test and display options; dark or light theme |
 
 ### Recommended workflow
 
 1. **Settings:** pick your camera. Sit centred so your **whole head, shoulders and both hands** are
    visible, and mouth the word while signing as you naturally would.
-2. **Record & Train:** record ≥ 5 takes per sign (guided mode walks through all 25; about 20 min).
+2. **Record & Train:** record ≥ 5 takes per sign (guided mode walks through all 50; about 40 min).
    Press **Retrain**. Once you have ≥ 3 takes of a sign, your newest take is held out as an
    **honest test** (the "Real val" number).
 3. **Self-test:** run a test to get your real accuracy and see which signs need more takes.
@@ -61,8 +64,8 @@ https://download.pytorch.org/whl/cu126` - supports GTX 10-series and newer); oth
 
 The local pipeline is always the real-time classifier: offline, free, about 16 processed fps.
 With a Claude API key (Settings → Claude), each recognised sign can be double-checked by Claude.
-It receives 6 keyframes of your clip (with hand skeletons) plus 25 labelled reference sheets
-(prompt-cached), and picks one of the 25 signs or "none" via structured output. It runs in the
+It receives 6 keyframes of your clip (with hand skeletons) plus a labelled reference sheet for every
+sign (prompt-cached), and picks one of the supported signs or "none" via structured output. It runs in the
 background, so the live view never waits.
 
 - Models: **Claude Haiku 5.5** (default; fastest and cheapest, runs without extended thinking for
@@ -85,6 +88,16 @@ background, so the live view never waits.
   Claude can't be the main recogniser: it sees still keyframes, not motion, and JSL isn't something
   it knows reliably. Its "medium/high" confidence answers were right more often than its "low" ones,
   so treat a confident disagreement as a hint to check, not as the truth.
+
+### Sentence mode
+
+Press **Sentence mode** on the Live page, then sign words one after another (lower your hands briefly
+between words). After a pause (Settings → Display, default 4 s) or **Make sentence**, the sequence of
+signs is turned into one natural Japanese sentence plus an English translation by Claude (if enabled;
+otherwise the signs are listed). JSL grammar differs from spoken Japanese (no particles or
+inflections), so Claude infers the most likely meaning from the signs only. Sentences are saved on the
+History page. This chains *isolated* signs; recognising continuous signing without pauses needs
+sentence training data (e.g. KoSign dialogues).
 
 ### OpenCV app (no browser)
 
@@ -112,6 +125,20 @@ Opens the camera via Media Foundation on Windows. On the test laptop, DirectShow
 | One signer | Record & Train: your takes are training data **and** instant **personal examples** (few-shot matching on the model's embedding, blended with the classifier) |
 | Recordings tied to one feature layout | v3: takes store **raw landmarks**, so future feature changes never require re-recording |
 
+### Adding more data: KoSign, other signers, NHK
+
+- **KoSign** (Kogakuin University JSL database, distributed by
+  [NII IDR](https://www.nii.ac.jp/dsc/idr/rdata/KoSign/)): about 6,300 words plus dialogues by native
+  Deaf signers, HD video and 3D motion, free for research. The application must come from full-time
+  faculty, with a seal from someone with signing authority; research use only. A draft application is in
+  [docs/kosign_application_draft.md](docs/kosign_application_draft.md).
+- **Any sign videos you are licensed to use** (KoSign, JSL-DC, recordings of other signers):
+  `python scripts/import_videos.py --source NAME --dir FOLDER [--map map.csv] [--add-new]`, then
+  retrain. Imported clips become extra training examples; `--add-new` also extends the vocabulary.
+- **NHK** (手話ニュース, sign-language CG, the NHK STRL motion dictionary): no public or research release
+  was found. These are NHK's copyrighted works, so they are **not** downloaded or used for training.
+  Using them would need NHK's permission.
+
 ### What the research says (Oct 2026)
 
 - General vision-language models are weak at isolated sign recognition. Open-source models score under
@@ -126,32 +153,38 @@ Opens the camera via Media Foundation on Windows. On the test laptop, DirectShow
 
 ## Results
 
-Measured on Windows 11 (i5-8400, GTX 1060 6GB), 2026-10-13. "Replay" pushes each reference video
-frame by frame through the exact live path (MediaPipe → time-based buffer → model → smoothing →
-decision logic), with 1 s of rest before and 1.5 s after.
+Measured on Windows 11 (i5-8400, GTX 1060 6GB). "Replay" pushes each reference video frame by frame
+through the exact live path (MediaPipe → time-based buffer → model → smoothing → decision logic), with
+1 s of rest before and 1.5 s after. A sign counts as correct if it is the first one emitted.
 
-| Check | v1 (hands only) | v2 (+ pose) | **v3 (+ face/lips, Conv1D+Transformer)** |
+**Current model: 50 signs** (2026-10-20, features v3 + iris/eyebrows, JSLNet, GPU):
+
+| Check | Result |
+|---|---|
+| Replay, full-body videos, 30 / 15 / 10 fps | **50/50**, **50/50**, **50/50**. No wrong or duplicate emissions |
+| Replay as a close laptop webcam (zoom 1.8, never trained on) | **49/50** (泣く not emitted) |
+| Replay, even closer (zoom 2.4) | **49/50** (スキー not emitted) |
+| Synthetic validation (**optimistic**) | 100% top-1 / top-3 |
+| Real validation on your held-out takes | appears after you record ≥ 3 takes per sign |
+| Extraction (50 signs) | hands 95–100%, shoulders 100%, face 65–100% (兄: the hand covers the face) |
+| Training | 65 epochs (early stop), 21 min on the GTX 1060 |
+| ONNX parity | 8.3e-7 |
+| Live throughput (hands + body + face + irises) | ~15–16 processed fps |
+| Unit tests | **38 passed** |
+
+History on the first 25 signs:
+
+| Check | v1 (hands only) | v2 (+ pose) | v3 (+ face/lips) |
 |---|---|---|---|
-| Replay, full-body videos, 30 fps | 25/25 | 25/25 | **25/25** |
-| Replay at a simulated 15 fps camera | 25/25 | 25/25 | 24/25 (see note) |
-| Replay at a simulated 10 fps camera | 11/25 | 25/25 | **25/25** |
-| **Replay as a close laptop webcam (zoom 1.8, never trained on)** | **10/25** | 25/25 | **25/25** |
-| Replay, even closer (zoom 2.4) | – | 24/25 | 24/25 |
-| Synthetic validation (**optimistic**) | 99.9% | 99.9% | 99.8% top-1, 100% top-3 |
-| Real validation on your held-out takes | – | – | appears after you record ≥ 3 takes per sign |
-| Extraction (25 signs) | hands 88–100% | + shoulders 100% | + face 89–100% |
-| Training time | ~8 min CPU | ~8 min CPU | ~9 min GPU (68 epochs, early stop) |
-| ONNX parity | 2.9e-6 | 1.9e-6 | 8.3e-7 |
-| Live webcam throughput (hands + body + face) | – | – | ~14 fps (real camera), ~16 fps (UI check) |
-| Unit tests | 25 | 32 | **36 passed** |
+| Replay, full-body, 30 fps | 25/25 | 25/25 | 25/25 |
+| Replay at 10 fps | 11/25 | 25/25 | 25/25 |
+| **Replay as a close laptop webcam (zoom 1.8)** | **10/25** | 25/25 | 25/25 |
 
-Note: the misses are all スキー, which v3 recognises correctly the whole time, but its smoothed
-confidence peaks at 0.60–0.63, right at the 0.60 threshold, so whether it fires depends on which
-frames arrive. The threshold was not lowered to pass the test. Your own takes (personal examples +
-retraining) make the model more confident on your signing, and the threshold can be changed in Settings.
-
-These tests show robustness to framing, hand size and frame rate. They do **not** show generalisation
-to other signers. Only your own recordings ("Real val") and the Self-test page measure that.
+The misses are signs the model recognises correctly but with smoothed confidence just under the
+0.60 threshold. The threshold was not lowered to pass the tests; your own takes make the model more
+confident, and the threshold is adjustable in Settings. These tests show robustness to framing, hand
+size and frame rate. They do **not** show generalisation to other signers. Only your own recordings
+("Real val") and the Self-test page measure that.
 
 ## Architecture
 
@@ -216,7 +249,9 @@ src/app/                                  settings, SQLite store, recordings, ba
 frontend/                                 dashboard pages + static/{app.css, common.js, camera.js}
 models/                                   jsl_model.onnx, meta.json, reports, confusion.png
 hardware/glove_design/                    tactile glove embroidery files (.pes)
-tests/                                    pytest suite (36 tests)
+scripts/import_videos.py                  import extra sign videos (KoSign, other signers) as training data
+docs/kosign_application_draft.md          KoSign application steps + draft email
+tests/                                    pytest suite (38 tests)
 ```
 
 ## Known limitations
@@ -225,6 +260,10 @@ tests/                                    pytest suite (36 tests)
   reference videos (one signer). Use Record & Train and Self-test for real numbers.
 - **Framing:** the head, shoulders and both hands should be visible. Without shoulders, position
   features are missing and accuracy drops (the UI warns: "Shoulders not visible").
+- **Single reference signer.** All 50 reference videos show the same signer. Record your own takes,
+  and import other signers (KoSign) for signer independence.
+- **Eye tracking** needs the face reasonably large and lit. Glasses with strong reflections can make
+  the iris position noisy. The Live page indicators compare against your own slowly adapting baseline.
 - **Overlapping hands** (e.g. ゴルフ) lose MediaPipe detections. Very close framing (zoom ≥ 2.4)
   starts to miss signs.
 - **Mouthing, not general lip reading.** Lip and mouth shapes are features the model learns *per
@@ -242,6 +281,7 @@ glove data for *recognition*, add it to the feature vector and retrain.
 
 ## Adding more signs
 
-Add the videos (file name = sign name) to `data/raw/`, add entries to `data/label_map.json` and
-`data/signs_english.json`, update `NUM_SIGNS` in `src/common/config.py`, then re-run extraction,
-the reference sheets and training.
+Put the new video zip (file name = sign name, same blue-background format) in `data/raw/`, add
+entries to `data/label_map.json` and `data/signs_english.json` (the vocabulary size follows the label
+map automatically), then re-run extraction, the reference sheets and training. For videos in other
+formats or from other signers, use `scripts/import_videos.py --add-new`.
