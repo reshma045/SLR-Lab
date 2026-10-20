@@ -26,3 +26,4 @@ models/prototypes.npz
 models/prototypes.tmp.npz
 data/landmarks_raw_extra/
 data/_tmp_import/
+artifacts_*.log
