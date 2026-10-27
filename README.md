@@ -48,6 +48,7 @@ https://download.pytorch.org/whl/cu126` - supports GTX 10-series and newer); oth
 | **Live** | Real-time recognition: big sign display, confidence and top-3, hand / shoulder / face status, mouth, **eyes (gaze direction)** and **eyebrow** indicators, personal-examples count, session log, Claude verdict (AGREES / DIFFERS), history tape, **Sentence mode** |
 | **Record & Train** | Guided recording of your own takes (countdown, quality check, reference keyframes, progress for all signs). Every saved take is **immediately** used as a personal example (no retraining needed); one-click **retrain** (GPU) with live progress chart and **roll back** |
 | **Self-test** | Shows a random sign, you perform it, and it records whether it was recognised. Gives real accuracy per sign, what each sign is confused with, past runs, CSV export |
+| **Evaluation** | **Accuracy, precision, recall, F1** (macro and weighted), no-sign rate and delay, **offline vs real-time** side by side; per-sign table, confusion matrix, one-click offline evaluation, CSV export; **gloss-free** translation scores (BLEU-4, chrF, exact match) compared with the gloss-based pipeline |
 | **History** | Every recognised sign with confidence and Claude's verdict and reason; sentences made in Sentence mode; search, stats, CSV export |
 | **Settings** | Claude API key and model, when to ask Claude, connection test; camera picker; recognition thresholds; recording, test and display options; dark or light theme |
 
@@ -98,6 +99,38 @@ otherwise the signs are listed). JSL grammar differs from spoken Japanese (no pa
 inflections), so Claude infers the most likely meaning from the signs only. Sentences are saved on the
 History page. This chains *isolated* signs; recognising continuous signing without pauses needs
 sentence training data (e.g. KoSign dialogues).
+
+### Evaluation: offline vs real-time metrics
+
+The Evaluation page (and `python scripts/evaluate.py`) reports, for each evaluation set:
+accuracy, macro precision / recall / F1, weighted F1, the share of attempts where no sign was
+recognised, and the delay to recognition. Predictions are the first sign the system emits, exactly
+like the live app. "No sign" counts as a miss for recall and is never a false positive.
+
+| Mode | Set | What it measures |
+|---|---|---|
+| Offline | Reference videos · 30 fps | Full pipeline on the 50 reference videos (training signer: optimistic) |
+| Offline | Reference videos · 15 fps camera | Frame-rate robustness |
+| Offline | Reference videos · close laptop webcam | Framing robustness (this crop is never trained on) |
+| Offline | Your held-out takes | **Honest**: your newest take of each sign (≥ 3 takes), never trained on |
+| Real-time | Self-test · live webcam | **Honest**: your live attempts, prompted and timed |
+
+### Gloss-free translation
+
+Sentence mode offers two methods:
+
+- **Gloss-based**: recognise each sign (gloss), then Claude writes the sentence.
+- **Gloss-free**: one model maps the motion of a whole signed sentence **directly to Japanese text**,
+  with no sign labels in between (in the spirit of [GFSLT-VLP](https://arxiv.org/pdf/2307.14768)).
+  Sign a sentence, then hold still for about 1.2 s; the segment is translated.
+
+No public JSL sentence corpus is usable yet (J-Shuwa is gated and metadata-only; KoSign needs an
+application), so the model is trained on **synthetic signed sentences**. Real recordings of the 50
+signs are stitched together with natural transitions, following
+[PoseStitch-SLT (EMNLP 2025)](https://aclanthology.org/2025.emnlp-main.698). There are 105
+hand-written sentence templates; 21 are held out as unseen word combinations
+(`src/glossfree/corpus.py`). Model: Conv1D + Transformer encoder and a 3-layer character-level
+Transformer decoder (2.7 M parameters), about 10 min on the GPU (`python scripts/train_glossfree.py`).
 
 ### OpenCV app (no browser)
 
@@ -157,20 +190,43 @@ Measured on Windows 11 (i5-8400, GTX 1060 6GB). "Replay" pushes each reference v
 through the exact live path (MediaPipe → time-based buffer → model → smoothing → decision logic), with
 1 s of rest before and 1.5 s after. A sign counts as correct if it is the first one emitted.
 
-**Current model: 50 signs** (2026-10-20, features v3 + iris/eyebrows, JSLNet, GPU):
+**Current model: 50 signs** (features v3 + iris/eyebrows, JSLNet, GPU). Offline evaluation 2026-10-27:
+
+| Mode | Set | Accuracy | Precision | Recall | F1 | No sign |
+|---|---|---|---|---|---|---|
+| Offline | Reference videos · 30 fps | 100% | 100% | 100% | 100% | 0% |
+| Offline | Reference videos · 15 fps camera | 100% | 100% | 100% | 100% | 0% |
+| Offline | Reference videos · close laptop webcam | 98% | 98% | 98% | 98% | 2% |
+| Offline | Your held-out takes | appears after you record ≥ 3 takes per sign | | | | |
+| Real-time | Self-test · live webcam | run a Self-test with the current model | | | | |
+
+Precision, recall and F1 are macro averages over the 50 signs. The 98% row misses one sign (泣く)
+that is recognised correctly but stays under the 0.60 confidence threshold. There are no wrong
+emissions in any offline set.
+
+**Gloss-free translation** (21 unseen sentences, each signed 3 ways = 63 test items, 2026-10-27):
+
+| Method | Result |
+|---|---|
+| Gloss-free (motion → Japanese, no glosses) | **BLEU-4 85.6 · chrF 85.8 · 81.0% exact sentences** |
+| Gloss-based (isolated-sign recogniser on the same items) | 100% exact sign sequence · sign error rate 0% |
+| Gloss-free on seen sentences, new stitching | 100% exact |
+
+All gloss-free errors follow one pattern: when a test combination's template had little variety in
+training, the model falls back to a memorised sentence (e.g. every 夏 + sport + 楽しい became
+"夏のゴルフは楽しいです", the only sport seen in that template). This is the known weakness of
+gloss-free models trained on small data. Gloss-based is stronger here because the stitched sentences
+are built from clean isolated signs; gloss-free has the advantage of not needing sign labels, which
+matters once real continuous sentence data (KoSign dialogues, J-Shuwa) is available.
 
 | Check | Result |
 |---|---|
-| Replay, full-body videos, 30 / 15 / 10 fps | **50/50**, **50/50**, **50/50**. No wrong or duplicate emissions |
-| Replay as a close laptop webcam (zoom 1.8, never trained on) | **49/50** (泣く not emitted) |
-| Replay, even closer (zoom 2.4) | **49/50** (スキー not emitted) |
-| Synthetic validation (**optimistic**) | 100% top-1 / top-3 |
-| Real validation on your held-out takes | appears after you record ≥ 3 takes per sign |
+| Replay, close webcam even closer (zoom 2.4) | 49/50 (スキー not emitted) |
 | Extraction (50 signs) | hands 95–100%, shoulders 100%, face 65–100% (兄: the hand covers the face) |
 | Training | 65 epochs (early stop), 21 min on the GTX 1060 |
 | ONNX parity | 8.3e-7 |
 | Live throughput (hands + body + face + irises) | ~15–16 processed fps |
-| Unit tests | **38 passed** |
+| Unit tests | **45 passed** |
 
 History on the first 25 signs:
 
@@ -250,8 +306,12 @@ frontend/                                 dashboard pages + static/{app.css, com
 models/                                   jsl_model.onnx, meta.json, reports, confusion.png
 hardware/glove_design/                    tactile glove embroidery files (.pes)
 scripts/import_videos.py                  import extra sign videos (KoSign, other signers) as training data
+scripts/evaluate.py                       offline evaluation (accuracy, precision, recall, F1) -> models/eval_report.json
+scripts/train_glossfree.py                train + evaluate the gloss-free translation model
+src/eval/                                 classification metrics, offline evaluation runner
+src/glossfree/                            sentence corpus, motion stitching, gloss-free model, metrics, live segmenter
 docs/kosign_application_draft.md          KoSign application steps + draft email
-tests/                                    pytest suite (38 tests)
+tests/                                    pytest suite (45 tests)
 ```
 
 ## Known limitations

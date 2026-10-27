@@ -47,7 +47,7 @@ async def ws_check() -> dict:
         return json.loads(await asyncio.wait_for(ws.recv(), 30))
 
 
-PAGES = {"live": "/", "record": "/record", "test": "/test", "history": "/history", "settings": "/settings"}
+PAGES = {"live": "/", "record": "/record", "test": "/test", "eval": "/eval", "history": "/history", "settings": "/settings"}
 
 
 def browser_check() -> list[str]:

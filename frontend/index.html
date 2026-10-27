@@ -107,7 +107,8 @@ html,body{overflow:hidden}
   <div class="history"><button class="btn sm modebtn" id="sentBtn" title="Sign several words in a row and get a sentence">Sentence mode</button>
     <h2 id="tapeTitle">History</h2><div class="tape" id="tape"><span class="muted small">Recognised signs will appear here</span></div>
     <div class="sentbox"><div class="ja" id="sentJa">Sign words one after another…</div><div class="en" id="sentEn">A sentence appears after a short pause.</div></div>
-    <div class="row sentbox" style="flex-direction:row;max-width:none"><button class="btn sm" id="sentUndo">Undo</button><button class="btn sm" id="sentClear">Clear</button><button class="btn sm primary" id="sentGo">Make sentence</button></div></div>
+    <div class="row sentbox" style="flex-direction:row;max-width:none"><button class="btn sm" id="sentUndo">Undo</button><button class="btn sm" id="sentClear">Clear</button><button class="btn sm primary" id="sentGo">Make sentence</button>
+      <select id="sentMethod" title="How sentences are produced" style="width:auto"><option value="glossbased">Gloss-based: signs → Claude</option><option value="glossfree">Gloss-free: direct model</option></select></div></div>
 </div>
 <script src="/static/common.js"></script>
 <script src="/static/camera.js"></script>
@@ -146,15 +147,21 @@ html,body{overflow:hidden}
   }
 
   // ---------- sentence mode: chain recognised signs, then Claude writes the sentence
-  let sentMode = false, gloss = [], sentTimer = null, sentDone = false;
-  try { sentMode = localStorage.getItem("jsl.sentence") === "1"; } catch (e) {}
+  let sentMode = false, gloss = [], sentTimer = null, sentDone = false, method = "glossbased";
+  try { sentMode = localStorage.getItem("jsl.sentence") === "1"; method = localStorage.getItem("jsl.sentMethod") || "glossbased"; } catch (e) {}
+  $("sentMethod").value = method;
+  const glossFree = () => sentMode && method === "glossfree";
+  function sendMethod() { cam && cam.send({ type: "sentence_method", method: glossFree() ? "glossfree" : "glossbased" }); }
   function renderSentence() {
     document.querySelector(".live").classList.toggle("sent", sentMode);
     $("sentBtn").classList.toggle("on", sentMode);
     $("tapeTitle").textContent = sentMode ? "Sentence" : "History";
-    if (sentMode) $("tape").innerHTML = gloss.length ? gloss.map(g => `<div class="pill"><b>${JSL.esc(g)}</b></div>`).join("")
+    ["sentUndo", "sentClear", "sentGo"].forEach(id => { $(id).style.display = glossFree() ? "none" : ""; });
+    if (glossFree()) $("tape").innerHTML = `<span class="muted small">Gloss-free: sign a whole sentence, then hold still - the model writes the sentence directly (no sign labels)</span>`;
+    else if (sentMode) $("tape").innerHTML = gloss.length ? gloss.map(g => `<div class="pill"><b>${JSL.esc(g)}</b></div>`).join("")
       : `<span class="muted small">Sign words in order; pause ${S.sentence.auto_translate_after_s || "…"} s to finish</span>`;
     else renderHistory();
+    sendMethod();
   }
   async function makeSentence() {
     clearTimeout(sentTimer);
@@ -178,6 +185,13 @@ html,body{overflow:hidden}
   $("sentUndo").onclick = () => { gloss.pop(); renderSentence(); };
   $("sentClear").onclick = () => { gloss = []; sentDone = false; clearTimeout(sentTimer); $("sentJa").textContent = "Sign words one after another…"; $("sentEn").textContent = ""; renderSentence(); };
   $("sentGo").onclick = makeSentence;
+  $("sentMethod").onchange = () => { method = $("sentMethod").value; try { localStorage.setItem("jsl.sentMethod", method); } catch (e) {} renderSentence(); };
+  function onGlossFree(g) {
+    if (!glossFree() || !g) return;
+    if (g.state === "signing") { $("sentEn").textContent = `signing… ${g.elapsed}s (hold still to finish)`; }
+    else if (g.state === "done") { $("sentJa").textContent = g.japanese || "—"; $("sentEn").textContent = (g.english || "(generated directly by the gloss-free model)") + ` · ${g.duration}s of signing`; }
+    else if (g.state === "unavailable") { $("sentEn").textContent = "Gloss-free model not trained yet (Evaluation page → Train)."; }
+  }
   function renderHistory() {
     if (!history.length) return;
     $("tape").innerHTML = history.map((h, i) => `<div class="pill" style="opacity:${(0.35 + 0.65 * (i + 1) / history.length).toFixed(2)}"><b>${JSL.esc(h.sign)}</b><span>${JSL.esc(h.english)}</span></div>`).join("");
@@ -186,7 +200,7 @@ html,body{overflow:hidden}
   function addDetection(msg) {
     const p = msg.prediction;
     history.push({ sign: msg.emitted, english: p.english || "" }); if (history.length > histLen) history.shift();
-    if (sentMode) sentenceAdd(msg.emitted); else renderHistory();
+    if (sentMode && !glossFree()) sentenceAdd(msg.emitted); else if (!sentMode) renderHistory();
     session.unshift({ sign: msg.emitted, english: p.english, conf: p.confidence, t: new Date(), claude: null });
     renderSession();
   }
@@ -220,12 +234,14 @@ html,body{overflow:hidden}
   }
 
   const cam = new LiveCamera({ stage: document.querySelector(".stage"), page: "live",
-    onStatus: s => { $("wsTxt").textContent = s.ws; dot("wsDot", s.ws === "connected" ? "ok" : s.ws === "connecting" ? "warn" : "bad"); },
+    onStatus: s => { $("wsTxt").textContent = s.ws; dot("wsDot", s.ws === "connected" ? "ok" : s.ws === "connecting" ? "warn" : "bad");
+      if (s.ws === "connected" && glossFree()) setTimeout(sendMethod, 0); },     // re-send after reconnects
     onResult: msg => {
       $("fpsTxt").textContent = cam.processedFps;
       if (msg.mode) { $("modeTxt").textContent = msg.mode === "model" ? "Model loaded" : "DEMO mode"; dot("modeDot", msg.mode === "model" ? "info" : "warn"); }
       if (msg.type !== "result") return;
       if (msg.model_reloaded) JSL.toast("New model loaded", "ok");
+      if (msg.glossfree) onGlossFree(msg.glossfree);
       const n = (msg.left_hand ? 1 : 0) + (msg.right_hand ? 1 : 0);
       $("handTxt").textContent = n ? [msg.left_hand && "L", msg.right_hand && "R"].filter(Boolean).join(" + ") : "No hands"; dot("handDot", n ? "ok" : "");
       $("poseTxt").textContent = msg.pose ? "Shoulders ✓" : "Shoulders not visible"; dot("poseDot", msg.pose ? "ok" : "warn");

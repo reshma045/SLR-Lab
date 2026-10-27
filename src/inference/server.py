@@ -27,7 +27,7 @@ verifier = ClaudeVerifier(settings.load()["claude"]["model"])
 api.verifier = verifier
 app.include_router(api.router)
 app.mount("/static", StaticFiles(directory=FRONTEND / "static"), name="static")
-PAGES = {"": "index.html", "record": "record.html", "test": "test.html", "history": "history.html",
+PAGES = {"": "index.html", "record": "record.html", "test": "test.html", "eval": "eval.html", "history": "history.html",
          "settings": "settings.html"}
 
 
@@ -99,7 +99,7 @@ async def ws_endpoint(ws: WebSocket) -> None:
     cfg = SettingsCache()
     predictor = await loop.run_in_executor(pool, JSLPredictor)
     session = uuid.uuid4().hex[:8]
-    state: dict = {"page": "live", "latest": None, "rec": None}
+    state: dict = {"page": "live", "latest": None, "rec": None, "gf": None}
     claude: dict = {"status": "ready" if verifier.available else "off"}
     ready = asyncio.Event()
 
@@ -150,6 +150,11 @@ async def ws_endpoint(ws: WebSocket) -> None:
             t = time.monotonic()
             payload = predictor.process_frame(frame, t=t, want_glove=s["display"]["show_glove"])
             rec = handle_record(t)
+            if state["gf"] is not None:                    # gloss-free sentence mode
+                g = state["gf"].push(t, predictor.last_vec)
+                payload["glossfree"] = g
+                if g["state"] == "done":
+                    store.add_sentence(["(gloss-free)"], g["japanese"], g.get("english") or "", "gloss-free model")
             em = payload["emitted"]
             if em and state["page"] == "live":
                 conf = payload["prediction"]["confidence"]
@@ -187,6 +192,9 @@ async def ws_endpoint(ws: WebSocket) -> None:
                                     "times": [], "raws": []}
             elif kind == "record_cancel":
                 state["rec"] = None
+            elif kind == "sentence_method":
+                from src.glossfree.live import GlossFreeLive
+                state["gf"] = GlossFreeLive() if msg.get("method") == "glossfree" else None
 
     async def worker() -> None:
         while True:

@@ -1,0 +1,936 @@
+{
+  "trained": "2026-10-27 17:25:02",
+  "profile": "default",
+  "device": "cuda",
+  "epochs": 60,
+  "train_seconds": 611.6,
+  "train_sentences": 84,
+  "test_sentences": 21,
+  "test_items": 63,
+  "metrics": {
+    "bleu4": 85.64163793944671,
+    "chrf": 85.78606925930906,
+    "exact": 0.8095238095238095,
+    "seen_exact": 1.0,
+    "gloss_based_wer": 0.0,
+    "gloss_based_exact_signs": 1.0
+  },
+  "examples": [
+    {
+      "signs": [
+        "ゴルフ",
+        "楽しい"
+      ],
+      "reference": "ゴルフは楽しいです。",
+      "english": "Golf is fun.",
+      "gloss_free": "ゴルフは楽しいです。",
+      "gloss_based_signs": [
+        "ゴルフ",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "ゴルフ",
+        "楽しい"
+      ],
+      "reference": "ゴルフは楽しいです。",
+      "english": "Golf is fun.",
+      "gloss_free": "ゴルフは楽しいです。",
+      "gloss_based_signs": [
+        "ゴルフ",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "ゴルフ",
+        "楽しい"
+      ],
+      "reference": "ゴルフは楽しいです。",
+      "english": "Golf is fun.",
+      "gloss_free": "ゴルフは楽しいです。",
+      "gloss_based_signs": [
+        "ゴルフ",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "スケート",
+        "とても",
+        "苦手"
+      ],
+      "reference": "スケートはとても苦手です。",
+      "english": "I'm really not good at skating.",
+      "gloss_free": "スケートはとても苦手です。",
+      "gloss_based_signs": [
+        "スケート",
+        "とても",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "スケート",
+        "とても",
+        "苦手"
+      ],
+      "reference": "スケートはとても苦手です。",
+      "english": "I'm really not good at skating.",
+      "gloss_free": "スケートはとても苦手です。",
+      "gloss_based_signs": [
+        "スケート",
+        "とても",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "スケート",
+        "とても",
+        "苦手"
+      ],
+      "reference": "スケートはとても苦手です。",
+      "english": "I'm really not good at skating.",
+      "gloss_free": "スケートはとても苦手です。",
+      "gloss_based_signs": [
+        "スケート",
+        "とても",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "とても",
+        "楽しい"
+      ],
+      "reference": "ピアノはとても楽しいです。",
+      "english": "The piano is a lot of fun.",
+      "gloss_free": "ピアノはとても楽しいです。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "とても",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "とても",
+        "楽しい"
+      ],
+      "reference": "ピアノはとても楽しいです。",
+      "english": "The piano is a lot of fun.",
+      "gloss_free": "ピアノはとても楽しいです。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "とても",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "とても",
+        "楽しい"
+      ],
+      "reference": "ピアノはとても楽しいです。",
+      "english": "The piano is a lot of fun.",
+      "gloss_free": "ピアノはとても楽しいです。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "とても",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "バレーボール",
+        "とても",
+        "楽しい"
+      ],
+      "reference": "バレーボールはとても楽しいです。",
+      "english": "Volleyball is a lot of fun.",
+      "gloss_free": "バレーボールはとても楽しいです。",
+      "gloss_based_signs": [
+        "バレーボール",
+        "とても",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "バレーボール",
+        "とても",
+        "楽しい"
+      ],
+      "reference": "バレーボールはとても楽しいです。",
+      "english": "Volleyball is a lot of fun.",
+      "gloss_free": "バレーボールはとても楽しいです。",
+      "gloss_based_signs": [
+        "バレーボール",
+        "とても",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "バレーボール",
+        "とても",
+        "楽しい"
+      ],
+      "reference": "バレーボールはとても楽しいです。",
+      "english": "Volleyball is a lot of fun.",
+      "gloss_free": "バレーボールはとても楽しいです。",
+      "gloss_based_signs": [
+        "バレーボール",
+        "とても",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "一緒",
+        "ラーメン",
+        "楽しい"
+      ],
+      "reference": "家族と一緒にラーメンを食べるのは楽しいです。",
+      "english": "Eating ramen with my family is fun.",
+      "gloss_free": "家族と一緒にテレビを見ます。",
+      "gloss_based_signs": [
+        "家族",
+        "一緒",
+        "ラーメン",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "一緒",
+        "ラーメン",
+        "楽しい"
+      ],
+      "reference": "家族と一緒にラーメンを食べるのは楽しいです。",
+      "english": "Eating ramen with my family is fun.",
+      "gloss_free": "家族と一緒に映画を見ます。",
+      "gloss_based_signs": [
+        "家族",
+        "一緒",
+        "ラーメン",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "一緒",
+        "ラーメン",
+        "楽しい"
+      ],
+      "reference": "家族と一緒にラーメンを食べるのは楽しいです。",
+      "english": "Eating ramen with my family is fun.",
+      "gloss_free": "家族と一緒にテレビを見ます。",
+      "gloss_based_signs": [
+        "家族",
+        "一緒",
+        "ラーメン",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "スケート",
+        "苦手"
+      ],
+      "reference": "スケートが苦手です。",
+      "english": "I'm not good at skating.",
+      "gloss_free": "スケートが苦手です。",
+      "gloss_based_signs": [
+        "スケート",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "スケート",
+        "苦手"
+      ],
+      "reference": "スケートが苦手です。",
+      "english": "I'm not good at skating.",
+      "gloss_free": "スケートが苦手です。",
+      "gloss_based_signs": [
+        "スケート",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "スケート",
+        "苦手"
+      ],
+      "reference": "スケートが苦手です。",
+      "english": "I'm not good at skating.",
+      "gloss_free": "スケートが苦手です。",
+      "gloss_based_signs": [
+        "スケート",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "コーヒー",
+        "嫌い"
+      ],
+      "reference": "コーヒーが嫌いです。",
+      "english": "I don't like coffee.",
+      "gloss_free": "コーヒーが嫌いです。",
+      "gloss_based_signs": [
+        "コーヒー",
+        "嫌い"
+      ]
+    },
+    {
+      "signs": [
+        "コーヒー",
+        "嫌い"
+      ],
+      "reference": "コーヒーが嫌いです。",
+      "english": "I don't like coffee.",
+      "gloss_free": "コーヒーが嫌いです。",
+      "gloss_based_signs": [
+        "コーヒー",
+        "嫌い"
+      ]
+    },
+    {
+      "signs": [
+        "コーヒー",
+        "嫌い"
+      ],
+      "reference": "コーヒーが嫌いです。",
+      "english": "I don't like coffee.",
+      "gloss_free": "コーヒーが嫌いです。",
+      "gloss_based_signs": [
+        "コーヒー",
+        "嫌い"
+      ]
+    },
+    {
+      "signs": [
+        "テレビ",
+        "みる",
+        "楽しい"
+      ],
+      "reference": "テレビを見るのは楽しいです。",
+      "english": "Watching TV is fun.",
+      "gloss_free": "テレビを見るのは楽しいです。",
+      "gloss_based_signs": [
+        "テレビ",
+        "みる",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "テレビ",
+        "みる",
+        "楽しい"
+      ],
+      "reference": "テレビを見るのは楽しいです。",
+      "english": "Watching TV is fun.",
+      "gloss_free": "テレビを見るのは楽しいです。",
+      "gloss_based_signs": [
+        "テレビ",
+        "みる",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "テレビ",
+        "みる",
+        "楽しい"
+      ],
+      "reference": "テレビを見るのは楽しいです。",
+      "english": "Watching TV is fun.",
+      "gloss_free": "テレビを見るのは楽しいです。",
+      "gloss_based_signs": [
+        "テレビ",
+        "みる",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "みんな",
+        "ビール",
+        "もらう"
+      ],
+      "reference": "みんなにビールをもらいました。",
+      "english": "I received beer from everyone.",
+      "gloss_free": "みんなにビールをもらいました。",
+      "gloss_based_signs": [
+        "みんな",
+        "ビール",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "みんな",
+        "ビール",
+        "もらう"
+      ],
+      "reference": "みんなにビールをもらいました。",
+      "english": "I received beer from everyone.",
+      "gloss_free": "みんなにビールをもらいました。",
+      "gloss_based_signs": [
+        "みんな",
+        "ビール",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "みんな",
+        "ビール",
+        "もらう"
+      ],
+      "reference": "みんなにビールをもらいました。",
+      "english": "I received beer from everyone.",
+      "gloss_free": "みんなにビールをもらいました。",
+      "gloss_based_signs": [
+        "みんな",
+        "ビール",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "バレーボール",
+        "苦手"
+      ],
+      "reference": "バレーボールが苦手です。",
+      "english": "I'm not good at volleyball.",
+      "gloss_free": "バレーボールが苦手です。",
+      "gloss_based_signs": [
+        "バレーボール",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "バレーボール",
+        "苦手"
+      ],
+      "reference": "バレーボールが苦手です。",
+      "english": "I'm not good at volleyball.",
+      "gloss_free": "バレーボールが苦手です。",
+      "gloss_based_signs": [
+        "バレーボール",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "バレーボール",
+        "苦手"
+      ],
+      "reference": "バレーボールが苦手です。",
+      "english": "I'm not good at volleyball.",
+      "gloss_free": "バレーボールが苦手です。",
+      "gloss_based_signs": [
+        "バレーボール",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "苦手"
+      ],
+      "reference": "ピアノが苦手です。",
+      "english": "I'm not good at the piano.",
+      "gloss_free": "ピアノが苦手です。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "苦手"
+      ],
+      "reference": "ピアノが苦手です。",
+      "english": "I'm not good at the piano.",
+      "gloss_free": "ピアノが苦手です。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "苦手"
+      ],
+      "reference": "ピアノが苦手です。",
+      "english": "I'm not good at the piano.",
+      "gloss_free": "ピアノが苦手です。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "みんな",
+        "ラーメン",
+        "もらう"
+      ],
+      "reference": "みんなにラーメンをもらいました。",
+      "english": "I received ramen from everyone.",
+      "gloss_free": "みんなにラーメンをもらいました。",
+      "gloss_based_signs": [
+        "みんな",
+        "ラーメン",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "みんな",
+        "ラーメン",
+        "もらう"
+      ],
+      "reference": "みんなにラーメンをもらいました。",
+      "english": "I received ramen from everyone.",
+      "gloss_free": "みんなにラーメンをもらいました。",
+      "gloss_based_signs": [
+        "みんな",
+        "ラーメン",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "みんな",
+        "ラーメン",
+        "もらう"
+      ],
+      "reference": "みんなにラーメンをもらいました。",
+      "english": "I received ramen from everyone.",
+      "gloss_free": "みんなにラーメンをもらいました。",
+      "gloss_based_signs": [
+        "みんな",
+        "ラーメン",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "スキー",
+        "下手",
+        "けれども",
+        "楽しい"
+      ],
+      "reference": "スキーは下手だけど楽しいです。",
+      "english": "I'm bad at skiing, but it's fun.",
+      "gloss_free": "スキーは下手だけど楽しいです。",
+      "gloss_based_signs": [
+        "スキー",
+        "下手",
+        "けれども",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "スキー",
+        "下手",
+        "けれども",
+        "楽しい"
+      ],
+      "reference": "スキーは下手だけど楽しいです。",
+      "english": "I'm bad at skiing, but it's fun.",
+      "gloss_free": "スキーは下手だけど楽しいです。",
+      "gloss_based_signs": [
+        "スキー",
+        "下手",
+        "けれども",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "スキー",
+        "下手",
+        "けれども",
+        "楽しい"
+      ],
+      "reference": "スキーは下手だけど楽しいです。",
+      "english": "I'm bad at skiing, but it's fun.",
+      "gloss_free": "スキーは下手だけど楽しいです。",
+      "gloss_based_signs": [
+        "スキー",
+        "下手",
+        "けれども",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "楽しい"
+      ],
+      "reference": "ピアノは楽しいです。",
+      "english": "The piano is fun.",
+      "gloss_free": "ピアノは楽しいです。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "楽しい"
+      ],
+      "reference": "ピアノは楽しいです。",
+      "english": "The piano is fun.",
+      "gloss_free": "ピアノは楽しいです。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "ピアノ",
+        "楽しい"
+      ],
+      "reference": "ピアノは楽しいです。",
+      "english": "The piano is fun.",
+      "gloss_free": "ピアノは楽しいです。",
+      "gloss_based_signs": [
+        "ピアノ",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "夏",
+        "サッカー",
+        "楽しい"
+      ],
+      "reference": "夏のサッカーは楽しいです。",
+      "english": "Soccer in summer is fun.",
+      "gloss_free": "夏のゴルフは楽しいです。",
+      "gloss_based_signs": [
+        "夏",
+        "サッカー",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "夏",
+        "サッカー",
+        "楽しい"
+      ],
+      "reference": "夏のサッカーは楽しいです。",
+      "english": "Soccer in summer is fun.",
+      "gloss_free": "夏のゴルフは楽しいです。",
+      "gloss_based_signs": [
+        "夏",
+        "サッカー",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "夏",
+        "サッカー",
+        "楽しい"
+      ],
+      "reference": "夏のサッカーは楽しいです。",
+      "english": "Soccer in summer is fun.",
+      "gloss_free": "夏はとても楽しいです。",
+      "gloss_based_signs": [
+        "夏",
+        "サッカー",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ビール",
+        "もらう"
+      ],
+      "reference": "家族にビールをもらいました。",
+      "english": "I received beer from my family.",
+      "gloss_free": "家族にビールをもらいました。",
+      "gloss_based_signs": [
+        "家族",
+        "ビール",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ビール",
+        "もらう"
+      ],
+      "reference": "家族にビールをもらいました。",
+      "english": "I received beer from my family.",
+      "gloss_free": "家族にビールをもらいました。",
+      "gloss_based_signs": [
+        "家族",
+        "ビール",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ビール",
+        "もらう"
+      ],
+      "reference": "家族にビールをもらいました。",
+      "english": "I received beer from my family.",
+      "gloss_free": "家族にビールをもらいました。",
+      "gloss_based_signs": [
+        "家族",
+        "ビール",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "今日",
+        "映画",
+        "みる"
+      ],
+      "reference": "今日は映画を見ます。",
+      "english": "Today I will watch a movie.",
+      "gloss_free": "今日は映画を見ます。",
+      "gloss_based_signs": [
+        "今日",
+        "映画",
+        "みる"
+      ]
+    },
+    {
+      "signs": [
+        "今日",
+        "映画",
+        "みる"
+      ],
+      "reference": "今日は映画を見ます。",
+      "english": "Today I will watch a movie.",
+      "gloss_free": "今日は映画を見ます。",
+      "gloss_based_signs": [
+        "今日",
+        "映画",
+        "みる"
+      ]
+    },
+    {
+      "signs": [
+        "今日",
+        "映画",
+        "みる"
+      ],
+      "reference": "今日は映画を見ます。",
+      "english": "Today I will watch a movie.",
+      "gloss_free": "今日は映画を見ます。",
+      "gloss_based_signs": [
+        "今日",
+        "映画",
+        "みる"
+      ]
+    },
+    {
+      "signs": [
+        "夏",
+        "バレーボール",
+        "楽しい"
+      ],
+      "reference": "夏のバレーボールは楽しいです。",
+      "english": "Volleyball in summer is fun.",
+      "gloss_free": "夏のゴルフは楽しいです。",
+      "gloss_based_signs": [
+        "夏",
+        "バレーボール",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "夏",
+        "バレーボール",
+        "楽しい"
+      ],
+      "reference": "夏のバレーボールは楽しいです。",
+      "english": "Volleyball in summer is fun.",
+      "gloss_free": "夏のゴルフは楽しいです。",
+      "gloss_based_signs": [
+        "夏",
+        "バレーボール",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "夏",
+        "バレーボール",
+        "楽しい"
+      ],
+      "reference": "夏のバレーボールは楽しいです。",
+      "english": "Volleyball in summer is fun.",
+      "gloss_free": "夏のゴルフは楽しいです。",
+      "gloss_based_signs": [
+        "夏",
+        "バレーボール",
+        "楽しい"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ありがとう"
+      ],
+      "reference": "家族、ありがとう。",
+      "english": "Thank you, my family.",
+      "gloss_free": "家族と一緒だと安心します。",
+      "gloss_based_signs": [
+        "家族",
+        "ありがとう"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ありがとう"
+      ],
+      "reference": "家族、ありがとう。",
+      "english": "Thank you, my family.",
+      "gloss_free": "家族と一緒だと安心します。",
+      "gloss_based_signs": [
+        "家族",
+        "ありがとう"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ありがとう"
+      ],
+      "reference": "家族、ありがとう。",
+      "english": "Thank you, my family.",
+      "gloss_free": "家族と一緒だと安心します。",
+      "gloss_based_signs": [
+        "家族",
+        "ありがとう"
+      ]
+    },
+    {
+      "signs": [
+        "ゴルフ",
+        "とても",
+        "苦手"
+      ],
+      "reference": "ゴルフはとても苦手です。",
+      "english": "I'm really not good at golf.",
+      "gloss_free": "ゴルフはとても苦手です。",
+      "gloss_based_signs": [
+        "ゴルフ",
+        "とても",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "ゴルフ",
+        "とても",
+        "苦手"
+      ],
+      "reference": "ゴルフはとても苦手です。",
+      "english": "I'm really not good at golf.",
+      "gloss_free": "ゴルフはとても苦手です。",
+      "gloss_based_signs": [
+        "ゴルフ",
+        "とても",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "ゴルフ",
+        "とても",
+        "苦手"
+      ],
+      "reference": "ゴルフはとても苦手です。",
+      "english": "I'm really not good at golf.",
+      "gloss_free": "ゴルフはとても苦手です。",
+      "gloss_based_signs": [
+        "ゴルフ",
+        "とても",
+        "苦手"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ラーメン",
+        "もらう"
+      ],
+      "reference": "家族にラーメンをもらいました。",
+      "english": "I received ramen from my family.",
+      "gloss_free": "家族にラーメンをもらいました。",
+      "gloss_based_signs": [
+        "家族",
+        "ラーメン",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ラーメン",
+        "もらう"
+      ],
+      "reference": "家族にラーメンをもらいました。",
+      "english": "I received ramen from my family.",
+      "gloss_free": "家族にラーメンをもらいました。",
+      "gloss_based_signs": [
+        "家族",
+        "ラーメン",
+        "もらう"
+      ]
+    },
+    {
+      "signs": [
+        "家族",
+        "ラーメン",
+        "もらう"
+      ],
+      "reference": "家族にラーメンをもらいました。",
+      "english": "I received ramen from my family.",
+      "gloss_free": "家族にラーメンをもらいました。",
+      "gloss_based_signs": [
+        "家族",
+        "ラーメン",
+        "もらう"
+      ]
+    }
+  ],
+  "description": "Gloss-free model trained only on (motion, Japanese sentence) pairs synthesised by stitching real recordings of the 50 signs (PoseStitch-SLT idea). Test = sentences never seen in training. Same signer as training, and outputs are limited to this sentence space."
+}

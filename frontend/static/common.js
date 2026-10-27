@@ -1,6 +1,6 @@
 // Shared helpers for every dashboard page: nav bar, API calls, toasts, settings, theme.
 (() => {
-  const PAGES = [["/", "Live"], ["/record", "Record & Train"], ["/test", "Self-test"],
+  const PAGES = [["/", "Live"], ["/record", "Record & Train"], ["/test", "Self-test"], ["/eval", "Evaluation"],
                  ["/history", "History"], ["/settings", "Settings"]];
 
   async function api(path, opts = {}) {

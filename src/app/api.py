@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Body, HTTPException
 from fastapi.responses import FileResponse, Response
 
-from src.app import recordings, settings, store, trainer
+from src.app import evaluator, recordings, settings, store, trainer
 from src.common.config import MODELS, NUM_SIGNS, class_names, load_english
 from src.inference.claude_verifier import REF_DIR
 
@@ -216,3 +216,99 @@ def make_sentence(body: dict = Body(...)) -> dict:
 @router.get("/sentences")
 def list_sentences() -> dict:
     return {"rows": store.sentences()}
+
+
+# ------------------------------------------------------------------ evaluation metrics
+def _realtime(run: str | None = None) -> dict:
+    """Accuracy / precision / recall / F1 of live Self-test attempts (webcam, real time)."""
+    import numpy as np
+    from src.eval.metrics import classification_report
+    rows = store.test_rows(run)
+    if not rows:
+        return {"report": None, "n": 0}
+    rep = classification_report([r["target"] for r in rows], [r["predicted"] for r in rows])
+    lat = [r["latency_s"] for r in rows if r["latency_s"] is not None and r["correct"]]
+    rep["mean_latency_s"] = float(np.mean(lat)) if lat else None
+    rep["median_latency_s"] = float(np.median(lat)) if lat else None
+    runs = []
+    for r in store.test_runs():
+        rr = store.test_rows(r["run"])
+        rp = classification_report([x["target"] for x in rr], [x["predicted"] for x in rr])
+        runs.append({"run": r["run"], "started": r["started"], "n": rp["n"], "accuracy": rp["accuracy"],
+                     "macro_precision": rp["macro_precision"], "macro_recall": rp["macro_recall"],
+                     "macro_f1": rp["macro_f1"]})
+    return {"report": rep, "n": rep["n"], "runs": runs}
+
+
+@router.get("/metrics/realtime")
+def realtime_metrics(run: str | None = None) -> dict:
+    return _realtime(run)
+
+
+@router.get("/metrics/offline")
+def offline_metrics() -> dict:
+    return {"report": evaluator.report(), "status": evaluator.status()}
+
+
+@router.post("/metrics/offline/run")
+def run_offline(body: dict = Body(default={})) -> dict:
+    from src.eval.offline import SETS
+    sets = [s for s in body.get("sets", []) if s in SETS] or None
+    return evaluator.start(settings.load()["profile"], sets)
+
+
+@router.get("/metrics.csv")
+def metrics_csv() -> Response:
+    """One row per evaluation set (offline sets + real-time self-tests) with the headline metrics."""
+    rows = []
+    rep = evaluator.report()
+    for name, s in ((rep or {}).get("sets") or {}).items():
+        if s.get("report"):
+            r = s["report"]
+            rows.append({"mode": "offline", "set": s["title"], "n": r["n"], "accuracy": round(r["accuracy"], 4),
+                         "macro_precision": round(r["macro_precision"], 4), "macro_recall": round(r["macro_recall"], 4),
+                         "macro_f1": round(r["macro_f1"], 4), "weighted_f1": round(r["weighted_f1"], 4),
+                         "no_sign_rate": round(r["none_rate"], 4), "note": s.get("note", "")})
+    rt = _realtime()
+    if rt["report"]:
+        r = rt["report"]
+        rows.append({"mode": "real-time", "set": "Self-test (live webcam)", "n": r["n"], "accuracy": round(r["accuracy"], 4),
+                     "macro_precision": round(r["macro_precision"], 4), "macro_recall": round(r["macro_recall"], 4),
+                     "macro_f1": round(r["macro_f1"], 4), "weighted_f1": round(r["weighted_f1"], 4),
+                     "no_sign_rate": round(r["none_rate"], 4), "note": "Your live signing"})
+    import csv
+    import io
+    buf = io.StringIO()
+    if rows:
+        w = csv.DictWriter(buf, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    return Response("\ufeff" + buf.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": "attachment; filename=jsl_metrics.csv"})
+
+
+# ------------------------------------------------------------------ gloss-free translation
+from src.app.jobs import Job  # noqa: E402
+
+glossfree_job = Job("scripts/train_glossfree.py", MODELS / "glossfree.log")
+
+
+@router.get("/glossfree/status")
+def glossfree_status() -> dict:
+    import json
+    from src.glossfree.train import REPORT, STATUS
+    st = json.loads(STATUS.read_text(encoding="utf-8")) if STATUS.exists() else {}
+    if st.get("state") in ("training", "evaluating") and not glossfree_job.running() and glossfree_job.proc is not None:
+        st["state"] = "failed"
+    if not REPORT.exists():
+        return {"trained": False, "status": st, "running": glossfree_job.running(),
+                "hint": "Train it on the Evaluation page or run python scripts/train_glossfree.py"}
+    rep = json.loads(REPORT.read_text(encoding="utf-8"))
+    return {"trained": True, "status": st, "running": glossfree_job.running(), "metrics": rep["metrics"],
+            "description": rep["description"], "trained_at": rep["trained"], "test_items": rep["test_items"],
+            "examples": rep["examples"][::3][:21]}
+
+
+@router.post("/glossfree/train")
+def glossfree_train() -> dict:
+    return glossfree_job.start("--profile", settings.load()["profile"])

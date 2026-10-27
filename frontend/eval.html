@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evaluation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+<style>
+.cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:12px;align-items:start}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.pick{cursor:pointer}
+tr.pick:hover td{background:var(--card2)}
+tr.sel td{background:var(--accent-soft)}
+.pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);color:var(--muted)}
+.pill.honest{color:var(--ok);border-color:rgba(34,197,94,.5)}
+.pill.rt{color:var(--accent);border-color:rgba(59,130,246,.5)}
+.cm{width:100%;max-width:560px;aspect-ratio:1;image-rendering:pixelated;border:1px solid var(--border);border-radius:6px;background:var(--track)}
+.defs dt{font-weight:600;margin-top:8px}
+.defs dd{color:var(--muted);font-size:13px}
+.bad{color:var(--bad)}.mid{color:var(--warn)}.good{color:var(--ok)}
+.note{font-size:12px;color:var(--muted)}
+@media (max-width:1100px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page grid">
+  <section class="card">
+    <h2>Offline vs real-time<span class="sp"></span>
+      <button class="btn sm primary" id="runBtn">Run offline evaluation</button>
+      <a class="btn sm" href="/api/metrics.csv">Export CSV</a></h2>
+    <div class="row small muted" id="runState" style="margin-bottom:8px"></div>
+    <div class="bar" id="runBar" style="display:none;margin-bottom:10px"><i id="runFill"></i></div>
+    <div class="tablewrap"><table><thead><tr><th>Mode</th><th>Evaluation set</th><th class="num">Signs</th><th class="num">Accuracy</th>
+      <th class="num">Precision</th><th class="num">Recall</th><th class="num">F1</th><th class="num">Weighted F1</th>
+      <th class="num">No sign</th><th class="num">Delay / latency</th><th>Note</th></tr></thead><tbody id="cmp"></tbody></table></div>
+    <p class="note" style="margin-top:8px">Precision, recall and F1 are macro averages over signs (every sign counts equally). Click a row for per-sign detail.
+      <b>Offline</b> = recorded data through the exact live pipeline. <b>Real-time</b> = your live webcam attempts on the Self-test page.</p>
+  </section>
+
+  <div class="cols">
+    <div class="grid">
+      <div class="stats" id="tiles"></div>
+      <section class="card"><h2>Per sign<span class="sp"></span><span class="small" id="setName"></span></h2>
+        <div class="tablewrap" style="max-height:62vh"><table><thead><tr><th>Sign</th><th class="num">Precision</th><th class="num">Recall</th>
+          <th class="num">F1</th><th class="num">Support</th><th>Most often recognised as</th></tr></thead><tbody id="per"></tbody></table></div></section>
+    </div>
+    <div class="grid">
+      <section class="card"><h2>Confusion matrix<span class="sp"></span><span class="small">rows = true sign · columns = recognised</span></h2>
+        <canvas class="cm" id="cm" width="51" height="51"></canvas>
+        <p class="note" id="cmNote" style="margin-top:6px"></p></section>
+      <section class="card"><h2>Gloss-free translation</h2><div id="gf" class="small muted">Loading…</div></section>
+      <section class="card defs"><h2>What the numbers mean</h2><dl>
+        <dt>Accuracy</dt><dd>Share of attempts where the first recognised sign was the right one.</dd>
+        <dt>Precision</dt><dd>When the system says “X”, how often it really was X (few false alarms).</dd>
+        <dt>Recall</dt><dd>When you sign X, how often the system recognises X (few misses). “No sign” counts as a miss.</dd>
+        <dt>F1</dt><dd>Harmonic mean of precision and recall: high only when both are high.</dd>
+        <dt>Macro vs weighted</dt><dd>Macro: every sign counts equally. Weighted: signs count by how often they were tested.</dd>
+        <dt>No sign</dt><dd>Share of attempts where nothing was recognised in time.</dd>
+        <dt>Delay / latency</dt><dd>Offline: seconds from the end of the sign to recognition (negative = before the hands came down). Real-time: seconds from “Sign now!” to recognition.</dd>
+        <dt>BLEU / chrF (gloss-free)</dt><dd>Overlap between the generated sentence and the reference sentence, in characters (chrF) and character n-grams (BLEU-4).</dd>
+      </dl></section>
+    </div>
+  </div>
+</div>
+<script src="/static/common.js"></script>
+<script>
+(async () => {
+  const $ = id => document.getElementById(id);
+  JSL.nav();
+  await JSL.settings();
+  const signs = (await JSL.api("/api/signs")).signs;
+  const eng = Object.fromEntries(signs.map(s => [s.sign, s.english]));
+  const order = signs.map(s => s.sign);
+  let sets = {}, current = null, poll = null;
+  const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
+  const cls = v => v == null ? "" : v >= 0.9 ? "good" : v >= 0.7 ? "mid" : "bad";
+
+  function rowHtml(key, mode, title, r, note, extra) {
+    return `<tr class="pick ${key === current ? "sel" : ""}" data-k="${key}"><td><span class="pill ${mode === "real-time" ? "rt" : key === "user_takes" ? "honest" : ""}">${mode}</span></td>
+      <td>${JSL.esc(title)}</td><td class="num">${r ? r.n : "—"}</td>
+      <td class="num ${cls(r && r.accuracy)}">${pct(r && r.accuracy)}</td><td class="num">${pct(r && r.macro_precision)}</td>
+      <td class="num">${pct(r && r.macro_recall)}</td><td class="num ${cls(r && r.macro_f1)}">${pct(r && r.macro_f1)}</td>
+      <td class="num">${pct(r && r.weighted_f1)}</td><td class="num">${pct(r && r.none_rate)}</td>
+      <td class="num">${extra == null ? "—" : extra.toFixed(2) + " s"}</td><td class="note">${JSL.esc(note)}</td></tr>`;
+  }
+
+  async function load() {
+    const [off, rt] = await Promise.all([JSL.api("/api/metrics/offline"), JSL.api("/api/metrics/realtime")]);
+    sets = {};
+    const rep = off.report;
+    if (rep) for (const [k, s] of Object.entries(rep.sets)) sets[k] = { mode: "offline", title: s.title, report: s.report, note: s.skipped || s.note, extra: s.report && s.report.mean_delay_s };
+    sets.realtime = { mode: "real-time", title: "Self-test · live webcam", report: rt.report,
+      note: rt.report ? `${rt.runs.length} run(s)` : "Run a Self-test to measure live accuracy", extra: rt.report && rt.report.mean_latency_s };
+    if (!current || !sets[current] || !sets[current].report) current = Object.keys(sets).find(k => sets[k].report) || null;
+    $("cmp").innerHTML = Object.entries(sets).map(([k, s]) => rowHtml(k, s.mode, s.title, s.report, s.note, s.extra)).join("")
+      || `<tr><td colspan="11" class="muted">No evaluation yet - press “Run offline evaluation”.</td></tr>`;
+    $("cmp").querySelectorAll("tr.pick").forEach(tr => tr.onclick = () => { if (sets[tr.dataset.k].report) { current = tr.dataset.k; load(); } });
+    $("runState").textContent = rep ? `Last offline evaluation: ${rep.created} · model trained ${rep.model_trained || "?"}` : "";
+    detail();
+    status(off.status);
+  }
+
+  function detail() {
+    const s = current && sets[current];
+    const r = s && s.report;
+    $("setName").textContent = s ? s.title : "";
+    if (!r) { $("tiles").innerHTML = ""; $("per").innerHTML = ""; return; }
+    $("tiles").innerHTML = [["Accuracy", r.accuracy], ["Precision", r.macro_precision], ["Recall", r.macro_recall], ["F1", r.macro_f1], ["Weighted F1", r.weighted_f1]]
+      .map(([k, v]) => `<div class="stat"><div class="v ${cls(v)}">${pct(v)}</div><div class="k">${k}${k === "Accuracy" || k === "Weighted F1" ? "" : " (macro)"}</div></div>`).join("")
+      + `<div class="stat"><div class="v">${r.n}</div><div class="k">Attempts</div></div>`;
+    const rows = Object.entries(r.per_class).filter(([c, v]) => v.support > 0).sort((a, b) => a[1].f1 - b[1].f1 || order.indexOf(a[0]) - order.indexOf(b[0]));
+    $("per").innerHTML = rows.map(([c, v]) => {
+      const conf = Object.entries(r.confusion[c] || {}).filter(([p]) => p !== c).sort((a, b) => b[1] - a[1])[0];
+      return `<tr><td class="jp">${JSL.esc(c)} <span class="muted small">${JSL.esc(eng[c] || "")}</span></td>
+        <td class="num">${pct(v.precision)}</td><td class="num">${pct(v.recall)}</td><td class="num ${cls(v.f1)}">${pct(v.f1)}</td>
+        <td class="num">${v.support}</td><td class="jp small">${conf ? `${JSL.esc(conf[0])} ×${conf[1]}` : ""}</td></tr>`;
+    }).join("");
+    drawCM(r);
+  }
+
+  function drawCM(r) {
+    const labels = order.concat(["(none)"]), n = labels.length, cv = $("cm"), ctx = cv.getContext("2d");
+    cv.width = cv.height = n;
+    const css = getComputedStyle(document.documentElement);
+    ctx.fillStyle = css.getPropertyValue("--track"); ctx.fillRect(0, 0, n, n);
+    let errors = 0;
+    labels.forEach((t, i) => {
+      const row = r.confusion[t]; if (!row) return;
+      const tot = Object.values(row).reduce((a, b) => a + b, 0);
+      for (const [p, c] of Object.entries(row)) {
+        const j = labels.indexOf(p); if (j < 0) continue;
+        const a = c / tot; if (p !== t) errors += c;
+        ctx.fillStyle = p === t ? `rgba(59,130,246,${0.25 + 0.75 * a})` : `rgba(239,68,68,${0.35 + 0.65 * a})`;
+        ctx.fillRect(j, i, 1, 1);
+      }
+    });
+    $("cmNote").textContent = `${n - 1} signs + “no sign” column. Blue diagonal = correct, red = confusions (${errors} errors).`;
+  }
+
+  function status(st) {
+    const running = st && st.running;
+    $("runBtn").disabled = running;
+    $("runBar").style.display = running ? "" : "none";
+    if (running && st.sets) {
+      const done = (st.set_index * (st.items || 1) + (st.item || 0)) / ((st.sets || 1) * (st.items || 1));
+      $("runFill").style.width = (done * 100).toFixed(1) + "%";
+      $("runState").textContent = `Evaluating ${st.set} · ${st.item + 1}/${st.items} ${st.label || ""}`;
+    }
+    if (running && !poll) poll = setInterval(async () => { const o = await JSL.api("/api/metrics/offline"); status(o.status); if (!o.status.running) { clearInterval(poll); poll = null; load(); JSL.toast("Offline evaluation finished", "ok"); } }, 2000);
+    if (st && st.state === "failed") $("runState").textContent = "Evaluation failed: " + (st.error || "see models/eval.log");
+  }
+  $("runBtn").onclick = async () => { const r = await JSL.api("/api/metrics/offline/run", { method: "POST", body: {} }); if (!r.started) JSL.toast(r.error, "bad"); load(); };
+
+  async function glossfree() {
+    let g;
+    try { g = await JSL.api("/api/glossfree/status"); } catch (e) { $("gf").textContent = "Gloss-free model unavailable."; return; }
+    const btn = `<button class="btn sm" id="gfTrain" ${g.running ? "disabled" : ""}>${g.running ? "Training…" : g.trained ? "Retrain gloss-free model" : "Train gloss-free model"}</button>`;
+    const prog = g.running && g.status && g.status.max_epochs ? `<span class="note">epoch ${g.status.epoch}/${g.status.max_epochs}</span>` : "";
+    if (!g.trained) { $("gf").innerHTML = `<p>Not trained yet (about 10 min on the GPU).</p><div class="row">${btn}${prog}</div>`; }
+    else {
+      const m = g.metrics;
+      $("gf").innerHTML = `<div class="stats" style="margin-bottom:8px">
+          <div class="stat"><div class="v">${m.bleu4.toFixed(1)}</div><div class="k">BLEU-4</div></div>
+          <div class="stat"><div class="v">${m.chrf.toFixed(1)}</div><div class="k">chrF</div></div>
+          <div class="stat"><div class="v">${pct(m.exact)}</div><div class="k">Exact sentence</div></div></div>
+        <table style="margin-bottom:8px"><thead><tr><th>Method (same ${g.test_items} unseen signed sentences)</th><th class="num">Result</th></tr></thead><tbody>
+          <tr><td>Gloss-free (motion → sentence, no sign labels)</td><td class="num">${pct(m.exact)} exact · BLEU ${m.bleu4.toFixed(1)}</td></tr>
+          <tr><td>Gloss-based (isolated signs, decision logic)</td><td class="num">${pct(m.gloss_based_exact_signs)} exact signs · WER ${pct(m.gloss_based_wer)}</td></tr>
+          <tr><td>Gloss-free on seen sentences (new stitching)</td><td class="num">${pct(m.seen_exact)} exact</td></tr></tbody></table>
+        <details><summary class="small muted">Test examples</summary><div class="tablewrap" style="max-height:260px"><table><thead><tr><th>Signs</th><th>Gloss-free output</th><th>Reference</th></tr></thead><tbody>
+          ${g.examples.map(e => `<tr><td class="jp small">${JSL.esc(e.signs.join(" "))}</td><td class="jp small ${e.gloss_free === e.reference ? "good" : "bad"}">${JSL.esc(e.gloss_free)}</td><td class="jp small">${JSL.esc(e.reference)}</td></tr>`).join("")}
+        </tbody></table></div></details>
+        <p class="note">${JSL.esc(g.description)} Trained ${JSL.esc(g.trained_at)}.</p><div class="row">${btn}${prog}</div>`;
+    }
+    $("gfTrain").onclick = async () => { const r = await JSL.api("/api/glossfree/train", { method: "POST" }); if (!r.started) JSL.toast(r.error, "bad"); glossfree(); };
+    if (g.running) setTimeout(glossfree, 3000);
+  }
+  load(); glossfree();
+})();
+</script>
+</body>
+</html>

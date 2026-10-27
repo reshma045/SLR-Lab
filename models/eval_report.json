@@ -1,0 +1,2936 @@
+{
+  "created": "2026-10-27 17:09:54",
+  "profile": "default",
+  "model_trained": "2026-10-20 17:58",
+  "sets": {
+    "ref_30fps": {
+      "title": "Reference videos · 30 fps",
+      "fps": 30.0,
+      "zoom": 1.0,
+      "note": "Same signer as training: optimistic",
+      "rows": [
+        {
+          "target": "〜から",
+          "predicted": "〜から",
+          "confidence": 0.8753,
+          "delay_s": -1.07,
+          "n_emitted": 1
+        },
+        {
+          "target": "ありがとう",
+          "predicted": "ありがとう",
+          "confidence": 0.8505,
+          "delay_s": -0.63,
+          "n_emitted": 1
+        },
+        {
+          "target": "ある",
+          "predicted": "ある",
+          "confidence": 0.9369,
+          "delay_s": -0.8,
+          "n_emitted": 1
+        },
+        {
+          "target": "いくつか",
+          "predicted": "いくつか",
+          "confidence": 0.9058,
+          "delay_s": -0.83,
+          "n_emitted": 1
+        },
+        {
+          "target": "いる",
+          "predicted": "いる",
+          "confidence": 0.8863,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "いろいろ",
+          "predicted": "いろいろ",
+          "confidence": 0.9393,
+          "delay_s": -0.67,
+          "n_emitted": 1
+        },
+        {
+          "target": "おとな",
+          "predicted": "おとな",
+          "confidence": 0.793,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "けれども",
+          "predicted": "けれども",
+          "confidence": 0.8623,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "とても",
+          "predicted": "とても",
+          "confidence": 0.8204,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "どちら",
+          "predicted": "どちら",
+          "confidence": 0.8603,
+          "delay_s": -1.17,
+          "n_emitted": 1
+        },
+        {
+          "target": "ほとんど",
+          "predicted": "ほとんど",
+          "confidence": 0.8868,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "みんな",
+          "predicted": "みんな",
+          "confidence": 0.8876,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "もらう",
+          "predicted": "もらう",
+          "confidence": 0.7781,
+          "delay_s": -1.97,
+          "n_emitted": 1
+        },
+        {
+          "target": "ゴルフ",
+          "predicted": "ゴルフ",
+          "confidence": 0.8433,
+          "delay_s": -0.8,
+          "n_emitted": 1
+        },
+        {
+          "target": "コーヒー",
+          "predicted": "コーヒー",
+          "confidence": 0.8205,
+          "delay_s": -1.4,
+          "n_emitted": 1
+        },
+        {
+          "target": "サッカー",
+          "predicted": "サッカー",
+          "confidence": 0.8553,
+          "delay_s": -1.43,
+          "n_emitted": 1
+        },
+        {
+          "target": "サークル",
+          "predicted": "サークル",
+          "confidence": 0.7914,
+          "delay_s": -1.37,
+          "n_emitted": 1
+        },
+        {
+          "target": "スキー",
+          "predicted": "スキー",
+          "confidence": 0.8757,
+          "delay_s": -1.0,
+          "n_emitted": 1
+        },
+        {
+          "target": "スケート",
+          "predicted": "スケート",
+          "confidence": 0.8453,
+          "delay_s": -1.2,
+          "n_emitted": 1
+        },
+        {
+          "target": "スポーツ",
+          "predicted": "スポーツ",
+          "confidence": 0.8538,
+          "delay_s": -1.07,
+          "n_emitted": 1
+        },
+        {
+          "target": "テレビ",
+          "predicted": "テレビ",
+          "confidence": 0.8656,
+          "delay_s": -1.37,
+          "n_emitted": 1
+        },
+        {
+          "target": "ネズミ",
+          "predicted": "ネズミ",
+          "confidence": 0.8281,
+          "delay_s": -1.37,
+          "n_emitted": 1
+        },
+        {
+          "target": "バレーボール",
+          "predicted": "バレーボール",
+          "confidence": 0.9275,
+          "delay_s": -1.33,
+          "n_emitted": 1
+        },
+        {
+          "target": "ビール",
+          "predicted": "ビール",
+          "confidence": 0.8607,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "ピアノ",
+          "predicted": "ピアノ",
+          "confidence": 0.7844,
+          "delay_s": -1.37,
+          "n_emitted": 1
+        },
+        {
+          "target": "みる",
+          "predicted": "みる",
+          "confidence": 0.8924,
+          "delay_s": -0.67,
+          "n_emitted": 1
+        },
+        {
+          "target": "ラーメン",
+          "predicted": "ラーメン",
+          "confidence": 0.8514,
+          "delay_s": -1.33,
+          "n_emitted": 1
+        },
+        {
+          "target": "一緒",
+          "predicted": "一緒",
+          "confidence": 0.7138,
+          "delay_s": -1.0,
+          "n_emitted": 1
+        },
+        {
+          "target": "下手",
+          "predicted": "下手",
+          "confidence": 0.8636,
+          "delay_s": -0.93,
+          "n_emitted": 1
+        },
+        {
+          "target": "今日",
+          "predicted": "今日",
+          "confidence": 0.8716,
+          "delay_s": -0.7,
+          "n_emitted": 1
+        },
+        {
+          "target": "休憩",
+          "predicted": "休憩",
+          "confidence": 0.8209,
+          "delay_s": -1.6,
+          "n_emitted": 1
+        },
+        {
+          "target": "会社",
+          "predicted": "会社",
+          "confidence": 0.9099,
+          "delay_s": -1.57,
+          "n_emitted": 1
+        },
+        {
+          "target": "元気",
+          "predicted": "元気",
+          "confidence": 0.8996,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "兄",
+          "predicted": "兄",
+          "confidence": 0.8528,
+          "delay_s": -0.87,
+          "n_emitted": 1
+        },
+        {
+          "target": "夏",
+          "predicted": "夏",
+          "confidence": 0.9085,
+          "delay_s": -1.2,
+          "n_emitted": 1
+        },
+        {
+          "target": "嫌い",
+          "predicted": "嫌い",
+          "confidence": 0.8888,
+          "delay_s": -1.33,
+          "n_emitted": 1
+        },
+        {
+          "target": "安心",
+          "predicted": "安心",
+          "confidence": 0.8555,
+          "delay_s": -0.93,
+          "n_emitted": 1
+        },
+        {
+          "target": "家",
+          "predicted": "家",
+          "confidence": 0.9141,
+          "delay_s": -1.43,
+          "n_emitted": 1
+        },
+        {
+          "target": "家族",
+          "predicted": "家族",
+          "confidence": 0.9002,
+          "delay_s": -0.73,
+          "n_emitted": 1
+        },
+        {
+          "target": "帰る",
+          "predicted": "帰る",
+          "confidence": 0.8409,
+          "delay_s": -1.1,
+          "n_emitted": 1
+        },
+        {
+          "target": "教わる",
+          "predicted": "教わる",
+          "confidence": 0.8277,
+          "delay_s": -0.87,
+          "n_emitted": 1
+        },
+        {
+          "target": "映画",
+          "predicted": "映画",
+          "confidence": 0.8244,
+          "delay_s": -1.07,
+          "n_emitted": 1
+        },
+        {
+          "target": "楽しい",
+          "predicted": "楽しい",
+          "confidence": 0.8735,
+          "delay_s": -0.87,
+          "n_emitted": 1
+        },
+        {
+          "target": "泣く",
+          "predicted": "泣く",
+          "confidence": 0.8804,
+          "delay_s": -0.93,
+          "n_emitted": 1
+        },
+        {
+          "target": "犬",
+          "predicted": "犬",
+          "confidence": 0.859,
+          "delay_s": -1.27,
+          "n_emitted": 1
+        },
+        {
+          "target": "考える",
+          "predicted": "考える",
+          "confidence": 0.8609,
+          "delay_s": -1.4,
+          "n_emitted": 1
+        },
+        {
+          "target": "苦手",
+          "predicted": "苦手",
+          "confidence": 0.7952,
+          "delay_s": -1.43,
+          "n_emitted": 1
+        },
+        {
+          "target": "雨",
+          "predicted": "雨",
+          "confidence": 0.8064,
+          "delay_s": -1.0,
+          "n_emitted": 1
+        },
+        {
+          "target": "飲む",
+          "predicted": "飲む",
+          "confidence": 0.8579,
+          "delay_s": -1.5,
+          "n_emitted": 1
+        },
+        {
+          "target": "魚",
+          "predicted": "魚",
+          "confidence": 0.9064,
+          "delay_s": -1.13,
+          "n_emitted": 1
+        }
+      ],
+      "report": {
+        "n": 50,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "none_rate": 0.0,
+        "per_class": {
+          "〜から": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ありがとう": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ある": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いくつか": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いろいろ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "おとな": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "けれども": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "とても": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "どちら": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ほとんど": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "みる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "みんな": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "もらう": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "コーヒー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ゴルフ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "サッカー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "サークル": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スキー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スケート": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スポーツ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "テレビ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ネズミ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "バレーボール": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ビール": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ピアノ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ラーメン": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "一緒": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "下手": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "今日": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "休憩": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "会社": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "元気": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "兄": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "夏": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "嫌い": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "安心": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "家": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "家族": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "帰る": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "教わる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "映画": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "楽しい": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "泣く": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "犬": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "考える": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "苦手": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "雨": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "飲む": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "魚": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "confusion": {
+          "〜から": {
+            "〜から": 1
+          },
+          "ありがとう": {
+            "ありがとう": 1
+          },
+          "ある": {
+            "ある": 1
+          },
+          "いくつか": {
+            "いくつか": 1
+          },
+          "いる": {
+            "いる": 1
+          },
+          "いろいろ": {
+            "いろいろ": 1
+          },
+          "おとな": {
+            "おとな": 1
+          },
+          "けれども": {
+            "けれども": 1
+          },
+          "とても": {
+            "とても": 1
+          },
+          "どちら": {
+            "どちら": 1
+          },
+          "ほとんど": {
+            "ほとんど": 1
+          },
+          "みんな": {
+            "みんな": 1
+          },
+          "もらう": {
+            "もらう": 1
+          },
+          "ゴルフ": {
+            "ゴルフ": 1
+          },
+          "コーヒー": {
+            "コーヒー": 1
+          },
+          "サッカー": {
+            "サッカー": 1
+          },
+          "サークル": {
+            "サークル": 1
+          },
+          "スキー": {
+            "スキー": 1
+          },
+          "スケート": {
+            "スケート": 1
+          },
+          "スポーツ": {
+            "スポーツ": 1
+          },
+          "テレビ": {
+            "テレビ": 1
+          },
+          "ネズミ": {
+            "ネズミ": 1
+          },
+          "バレーボール": {
+            "バレーボール": 1
+          },
+          "ビール": {
+            "ビール": 1
+          },
+          "ピアノ": {
+            "ピアノ": 1
+          },
+          "みる": {
+            "みる": 1
+          },
+          "ラーメン": {
+            "ラーメン": 1
+          },
+          "一緒": {
+            "一緒": 1
+          },
+          "下手": {
+            "下手": 1
+          },
+          "今日": {
+            "今日": 1
+          },
+          "休憩": {
+            "休憩": 1
+          },
+          "会社": {
+            "会社": 1
+          },
+          "元気": {
+            "元気": 1
+          },
+          "兄": {
+            "兄": 1
+          },
+          "夏": {
+            "夏": 1
+          },
+          "嫌い": {
+            "嫌い": 1
+          },
+          "安心": {
+            "安心": 1
+          },
+          "家": {
+            "家": 1
+          },
+          "家族": {
+            "家族": 1
+          },
+          "帰る": {
+            "帰る": 1
+          },
+          "教わる": {
+            "教わる": 1
+          },
+          "映画": {
+            "映画": 1
+          },
+          "楽しい": {
+            "楽しい": 1
+          },
+          "泣く": {
+            "泣く": 1
+          },
+          "犬": {
+            "犬": 1
+          },
+          "考える": {
+            "考える": 1
+          },
+          "苦手": {
+            "苦手": 1
+          },
+          "雨": {
+            "雨": 1
+          },
+          "飲む": {
+            "飲む": 1
+          },
+          "魚": {
+            "魚": 1
+          }
+        },
+        "mean_delay_s": -1.1378000000000001
+      }
+    },
+    "ref_15fps": {
+      "title": "Reference videos · 15 fps camera",
+      "fps": 15.0,
+      "zoom": 1.0,
+      "note": "Frame-rate robustness",
+      "rows": [
+        {
+          "target": "〜から",
+          "predicted": "〜から",
+          "confidence": 0.8961,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "ありがとう",
+          "predicted": "ありがとう",
+          "confidence": 0.8703,
+          "delay_s": -0.4,
+          "n_emitted": 1
+        },
+        {
+          "target": "ある",
+          "predicted": "ある",
+          "confidence": 0.9251,
+          "delay_s": -0.67,
+          "n_emitted": 1
+        },
+        {
+          "target": "いくつか",
+          "predicted": "いくつか",
+          "confidence": 0.9205,
+          "delay_s": -0.63,
+          "n_emitted": 1
+        },
+        {
+          "target": "いる",
+          "predicted": "いる",
+          "confidence": 0.8843,
+          "delay_s": -0.67,
+          "n_emitted": 1
+        },
+        {
+          "target": "いろいろ",
+          "predicted": "いろいろ",
+          "confidence": 0.9432,
+          "delay_s": -0.47,
+          "n_emitted": 1
+        },
+        {
+          "target": "おとな",
+          "predicted": "おとな",
+          "confidence": 0.7698,
+          "delay_s": -1.1,
+          "n_emitted": 1
+        },
+        {
+          "target": "けれども",
+          "predicted": "けれども",
+          "confidence": 0.9065,
+          "delay_s": -1.03,
+          "n_emitted": 1
+        },
+        {
+          "target": "とても",
+          "predicted": "とても",
+          "confidence": 0.8479,
+          "delay_s": -0.93,
+          "n_emitted": 1
+        },
+        {
+          "target": "どちら",
+          "predicted": "どちら",
+          "confidence": 0.9064,
+          "delay_s": -0.87,
+          "n_emitted": 1
+        },
+        {
+          "target": "ほとんど",
+          "predicted": "ほとんど",
+          "confidence": 0.86,
+          "delay_s": -0.7,
+          "n_emitted": 1
+        },
+        {
+          "target": "みんな",
+          "predicted": "みんな",
+          "confidence": 0.9019,
+          "delay_s": -1.03,
+          "n_emitted": 1
+        },
+        {
+          "target": "もらう",
+          "predicted": "もらう",
+          "confidence": 0.8281,
+          "delay_s": -1.73,
+          "n_emitted": 1
+        },
+        {
+          "target": "ゴルフ",
+          "predicted": "ゴルフ",
+          "confidence": 0.8374,
+          "delay_s": -0.7,
+          "n_emitted": 1
+        },
+        {
+          "target": "コーヒー",
+          "predicted": "コーヒー",
+          "confidence": 0.8516,
+          "delay_s": -1.17,
+          "n_emitted": 1
+        },
+        {
+          "target": "サッカー",
+          "predicted": "サッカー",
+          "confidence": 0.8681,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "サークル",
+          "predicted": "サークル",
+          "confidence": 0.7824,
+          "delay_s": -1.13,
+          "n_emitted": 1
+        },
+        {
+          "target": "スキー",
+          "predicted": "スキー",
+          "confidence": 0.7581,
+          "delay_s": -0.77,
+          "n_emitted": 1
+        },
+        {
+          "target": "スケート",
+          "predicted": "スケート",
+          "confidence": 0.8203,
+          "delay_s": -0.83,
+          "n_emitted": 1
+        },
+        {
+          "target": "スポーツ",
+          "predicted": "スポーツ",
+          "confidence": 0.8891,
+          "delay_s": -0.8,
+          "n_emitted": 1
+        },
+        {
+          "target": "テレビ",
+          "predicted": "テレビ",
+          "confidence": 0.6386,
+          "delay_s": -1.07,
+          "n_emitted": 1
+        },
+        {
+          "target": "ネズミ",
+          "predicted": "ネズミ",
+          "confidence": 0.8307,
+          "delay_s": -1.27,
+          "n_emitted": 1
+        },
+        {
+          "target": "バレーボール",
+          "predicted": "バレーボール",
+          "confidence": 0.9262,
+          "delay_s": -1.13,
+          "n_emitted": 1
+        },
+        {
+          "target": "ビール",
+          "predicted": "ビール",
+          "confidence": 0.887,
+          "delay_s": -1.03,
+          "n_emitted": 1
+        },
+        {
+          "target": "ピアノ",
+          "predicted": "ピアノ",
+          "confidence": 0.8218,
+          "delay_s": -1.0,
+          "n_emitted": 1
+        },
+        {
+          "target": "みる",
+          "predicted": "みる",
+          "confidence": 0.8815,
+          "delay_s": -0.53,
+          "n_emitted": 1
+        },
+        {
+          "target": "ラーメン",
+          "predicted": "ラーメン",
+          "confidence": 0.8595,
+          "delay_s": -1.13,
+          "n_emitted": 1
+        },
+        {
+          "target": "一緒",
+          "predicted": "一緒",
+          "confidence": 0.7797,
+          "delay_s": -0.77,
+          "n_emitted": 1
+        },
+        {
+          "target": "下手",
+          "predicted": "下手",
+          "confidence": 0.8791,
+          "delay_s": -0.73,
+          "n_emitted": 1
+        },
+        {
+          "target": "今日",
+          "predicted": "今日",
+          "confidence": 0.8755,
+          "delay_s": -0.57,
+          "n_emitted": 1
+        },
+        {
+          "target": "休憩",
+          "predicted": "休憩",
+          "confidence": 0.88,
+          "delay_s": -1.3,
+          "n_emitted": 1
+        },
+        {
+          "target": "会社",
+          "predicted": "会社",
+          "confidence": 0.9034,
+          "delay_s": -1.4,
+          "n_emitted": 1
+        },
+        {
+          "target": "元気",
+          "predicted": "元気",
+          "confidence": 0.9276,
+          "delay_s": -1.0,
+          "n_emitted": 1
+        },
+        {
+          "target": "兄",
+          "predicted": "兄",
+          "confidence": 0.8732,
+          "delay_s": -0.67,
+          "n_emitted": 1
+        },
+        {
+          "target": "夏",
+          "predicted": "夏",
+          "confidence": 0.8913,
+          "delay_s": -1.07,
+          "n_emitted": 1
+        },
+        {
+          "target": "嫌い",
+          "predicted": "嫌い",
+          "confidence": 0.9156,
+          "delay_s": -1.1,
+          "n_emitted": 1
+        },
+        {
+          "target": "安心",
+          "predicted": "安心",
+          "confidence": 0.8551,
+          "delay_s": -0.73,
+          "n_emitted": 1
+        },
+        {
+          "target": "家",
+          "predicted": "家",
+          "confidence": 0.931,
+          "delay_s": -1.2,
+          "n_emitted": 1
+        },
+        {
+          "target": "家族",
+          "predicted": "家族",
+          "confidence": 0.8986,
+          "delay_s": -0.6,
+          "n_emitted": 1
+        },
+        {
+          "target": "帰る",
+          "predicted": "帰る",
+          "confidence": 0.8044,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "教わる",
+          "predicted": "教わる",
+          "confidence": 0.8327,
+          "delay_s": -0.67,
+          "n_emitted": 1
+        },
+        {
+          "target": "映画",
+          "predicted": "映画",
+          "confidence": 0.8526,
+          "delay_s": -0.87,
+          "n_emitted": 1
+        },
+        {
+          "target": "楽しい",
+          "predicted": "楽しい",
+          "confidence": 0.8624,
+          "delay_s": -0.67,
+          "n_emitted": 1
+        },
+        {
+          "target": "泣く",
+          "predicted": "泣く",
+          "confidence": 0.8788,
+          "delay_s": -0.6,
+          "n_emitted": 1
+        },
+        {
+          "target": "犬",
+          "predicted": "犬",
+          "confidence": 0.9162,
+          "delay_s": -1.0,
+          "n_emitted": 1
+        },
+        {
+          "target": "考える",
+          "predicted": "考える",
+          "confidence": 0.8998,
+          "delay_s": -1.1,
+          "n_emitted": 1
+        },
+        {
+          "target": "苦手",
+          "predicted": "苦手",
+          "confidence": 0.8431,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "雨",
+          "predicted": "雨",
+          "confidence": 0.8367,
+          "delay_s": -0.83,
+          "n_emitted": 1
+        },
+        {
+          "target": "飲む",
+          "predicted": "飲む",
+          "confidence": 0.8658,
+          "delay_s": -1.3,
+          "n_emitted": 1
+        },
+        {
+          "target": "魚",
+          "predicted": "魚",
+          "confidence": 0.9142,
+          "delay_s": -0.97,
+          "n_emitted": 1
+        }
+      ],
+      "report": {
+        "n": 50,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "none_rate": 0.0,
+        "per_class": {
+          "〜から": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ありがとう": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ある": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いくつか": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いろいろ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "おとな": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "けれども": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "とても": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "どちら": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ほとんど": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "みる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "みんな": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "もらう": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "コーヒー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ゴルフ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "サッカー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "サークル": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スキー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スケート": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スポーツ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "テレビ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ネズミ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "バレーボール": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ビール": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ピアノ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ラーメン": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "一緒": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "下手": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "今日": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "休憩": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "会社": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "元気": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "兄": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "夏": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "嫌い": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "安心": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "家": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "家族": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "帰る": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "教わる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "映画": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "楽しい": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "泣く": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "犬": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "考える": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "苦手": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "雨": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "飲む": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "魚": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "confusion": {
+          "〜から": {
+            "〜から": 1
+          },
+          "ありがとう": {
+            "ありがとう": 1
+          },
+          "ある": {
+            "ある": 1
+          },
+          "いくつか": {
+            "いくつか": 1
+          },
+          "いる": {
+            "いる": 1
+          },
+          "いろいろ": {
+            "いろいろ": 1
+          },
+          "おとな": {
+            "おとな": 1
+          },
+          "けれども": {
+            "けれども": 1
+          },
+          "とても": {
+            "とても": 1
+          },
+          "どちら": {
+            "どちら": 1
+          },
+          "ほとんど": {
+            "ほとんど": 1
+          },
+          "みんな": {
+            "みんな": 1
+          },
+          "もらう": {
+            "もらう": 1
+          },
+          "ゴルフ": {
+            "ゴルフ": 1
+          },
+          "コーヒー": {
+            "コーヒー": 1
+          },
+          "サッカー": {
+            "サッカー": 1
+          },
+          "サークル": {
+            "サークル": 1
+          },
+          "スキー": {
+            "スキー": 1
+          },
+          "スケート": {
+            "スケート": 1
+          },
+          "スポーツ": {
+            "スポーツ": 1
+          },
+          "テレビ": {
+            "テレビ": 1
+          },
+          "ネズミ": {
+            "ネズミ": 1
+          },
+          "バレーボール": {
+            "バレーボール": 1
+          },
+          "ビール": {
+            "ビール": 1
+          },
+          "ピアノ": {
+            "ピアノ": 1
+          },
+          "みる": {
+            "みる": 1
+          },
+          "ラーメン": {
+            "ラーメン": 1
+          },
+          "一緒": {
+            "一緒": 1
+          },
+          "下手": {
+            "下手": 1
+          },
+          "今日": {
+            "今日": 1
+          },
+          "休憩": {
+            "休憩": 1
+          },
+          "会社": {
+            "会社": 1
+          },
+          "元気": {
+            "元気": 1
+          },
+          "兄": {
+            "兄": 1
+          },
+          "夏": {
+            "夏": 1
+          },
+          "嫌い": {
+            "嫌い": 1
+          },
+          "安心": {
+            "安心": 1
+          },
+          "家": {
+            "家": 1
+          },
+          "家族": {
+            "家族": 1
+          },
+          "帰る": {
+            "帰る": 1
+          },
+          "教わる": {
+            "教わる": 1
+          },
+          "映画": {
+            "映画": 1
+          },
+          "楽しい": {
+            "楽しい": 1
+          },
+          "泣く": {
+            "泣く": 1
+          },
+          "犬": {
+            "犬": 1
+          },
+          "考える": {
+            "考える": 1
+          },
+          "苦手": {
+            "苦手": 1
+          },
+          "雨": {
+            "雨": 1
+          },
+          "飲む": {
+            "飲む": 1
+          },
+          "魚": {
+            "魚": 1
+          }
+        },
+        "mean_delay_s": -0.9239999999999999
+      }
+    },
+    "ref_zoom18": {
+      "title": "Reference videos · close laptop webcam",
+      "fps": 30.0,
+      "zoom": 1.8,
+      "note": "Framing robustness; this crop is never used in training",
+      "rows": [
+        {
+          "target": "〜から",
+          "predicted": "〜から",
+          "confidence": 0.9076,
+          "delay_s": -1.07,
+          "n_emitted": 1
+        },
+        {
+          "target": "ありがとう",
+          "predicted": "ありがとう",
+          "confidence": 0.88,
+          "delay_s": -0.53,
+          "n_emitted": 1
+        },
+        {
+          "target": "ある",
+          "predicted": "ある",
+          "confidence": 0.9215,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "いくつか",
+          "predicted": "いくつか",
+          "confidence": 0.9234,
+          "delay_s": -0.83,
+          "n_emitted": 1
+        },
+        {
+          "target": "いる",
+          "predicted": "いる",
+          "confidence": 0.8872,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "いろいろ",
+          "predicted": "いろいろ",
+          "confidence": 0.8949,
+          "delay_s": -0.77,
+          "n_emitted": 1
+        },
+        {
+          "target": "おとな",
+          "predicted": "おとな",
+          "confidence": 0.7793,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "けれども",
+          "predicted": "けれども",
+          "confidence": 0.8447,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "とても",
+          "predicted": "とても",
+          "confidence": 0.8791,
+          "delay_s": -1.13,
+          "n_emitted": 1
+        },
+        {
+          "target": "どちら",
+          "predicted": "どちら",
+          "confidence": 0.9122,
+          "delay_s": -1.07,
+          "n_emitted": 1
+        },
+        {
+          "target": "ほとんど",
+          "predicted": "ほとんど",
+          "confidence": 0.757,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "みんな",
+          "predicted": "みんな",
+          "confidence": 0.9007,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "もらう",
+          "predicted": "もらう",
+          "confidence": 0.7499,
+          "delay_s": -1.97,
+          "n_emitted": 1
+        },
+        {
+          "target": "ゴルフ",
+          "predicted": "ゴルフ",
+          "confidence": 0.8579,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "コーヒー",
+          "predicted": "コーヒー",
+          "confidence": 0.844,
+          "delay_s": -1.3,
+          "n_emitted": 1
+        },
+        {
+          "target": "サッカー",
+          "predicted": "サッカー",
+          "confidence": 0.8495,
+          "delay_s": -1.43,
+          "n_emitted": 1
+        },
+        {
+          "target": "サークル",
+          "predicted": "サークル",
+          "confidence": 0.8325,
+          "delay_s": -1.27,
+          "n_emitted": 1
+        },
+        {
+          "target": "スキー",
+          "predicted": "スキー",
+          "confidence": 0.889,
+          "delay_s": -0.9,
+          "n_emitted": 1
+        },
+        {
+          "target": "スケート",
+          "predicted": "スケート",
+          "confidence": 0.8205,
+          "delay_s": -1.2,
+          "n_emitted": 1
+        },
+        {
+          "target": "スポーツ",
+          "predicted": "スポーツ",
+          "confidence": 0.8467,
+          "delay_s": -1.07,
+          "n_emitted": 1
+        },
+        {
+          "target": "テレビ",
+          "predicted": "テレビ",
+          "confidence": 0.8648,
+          "delay_s": -1.37,
+          "n_emitted": 1
+        },
+        {
+          "target": "ネズミ",
+          "predicted": "ネズミ",
+          "confidence": 0.8389,
+          "delay_s": -1.37,
+          "n_emitted": 1
+        },
+        {
+          "target": "バレーボール",
+          "predicted": "バレーボール",
+          "confidence": 0.9026,
+          "delay_s": -1.33,
+          "n_emitted": 1
+        },
+        {
+          "target": "ビール",
+          "predicted": "ビール",
+          "confidence": 0.8461,
+          "delay_s": -1.33,
+          "n_emitted": 1
+        },
+        {
+          "target": "ピアノ",
+          "predicted": "ピアノ",
+          "confidence": 0.8339,
+          "delay_s": -1.37,
+          "n_emitted": 1
+        },
+        {
+          "target": "みる",
+          "predicted": "みる",
+          "confidence": 0.8981,
+          "delay_s": -0.67,
+          "n_emitted": 1
+        },
+        {
+          "target": "ラーメン",
+          "predicted": "ラーメン",
+          "confidence": 0.8639,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "一緒",
+          "predicted": "一緒",
+          "confidence": 0.8239,
+          "delay_s": -1.1,
+          "n_emitted": 1
+        },
+        {
+          "target": "下手",
+          "predicted": "下手",
+          "confidence": 0.8432,
+          "delay_s": -0.93,
+          "n_emitted": 1
+        },
+        {
+          "target": "今日",
+          "predicted": "今日",
+          "confidence": 0.9023,
+          "delay_s": -0.6,
+          "n_emitted": 1
+        },
+        {
+          "target": "休憩",
+          "predicted": "休憩",
+          "confidence": 0.7986,
+          "delay_s": -1.7,
+          "n_emitted": 1
+        },
+        {
+          "target": "会社",
+          "predicted": "会社",
+          "confidence": 0.8984,
+          "delay_s": -1.57,
+          "n_emitted": 1
+        },
+        {
+          "target": "元気",
+          "predicted": "元気",
+          "confidence": 0.9114,
+          "delay_s": -1.23,
+          "n_emitted": 1
+        },
+        {
+          "target": "兄",
+          "predicted": "兄",
+          "confidence": 0.8202,
+          "delay_s": -0.87,
+          "n_emitted": 1
+        },
+        {
+          "target": "夏",
+          "predicted": "夏",
+          "confidence": 0.9105,
+          "delay_s": -1.2,
+          "n_emitted": 1
+        },
+        {
+          "target": "嫌い",
+          "predicted": "嫌い",
+          "confidence": 0.8835,
+          "delay_s": -1.33,
+          "n_emitted": 1
+        },
+        {
+          "target": "安心",
+          "predicted": "安心",
+          "confidence": 0.8886,
+          "delay_s": -0.83,
+          "n_emitted": 1
+        },
+        {
+          "target": "家",
+          "predicted": "家",
+          "confidence": 0.9256,
+          "delay_s": -1.33,
+          "n_emitted": 1
+        },
+        {
+          "target": "家族",
+          "predicted": "家族",
+          "confidence": 0.9034,
+          "delay_s": -0.73,
+          "n_emitted": 1
+        },
+        {
+          "target": "帰る",
+          "predicted": "帰る",
+          "confidence": 0.8404,
+          "delay_s": -1.1,
+          "n_emitted": 1
+        },
+        {
+          "target": "教わる",
+          "predicted": "教わる",
+          "confidence": 0.8174,
+          "delay_s": -0.87,
+          "n_emitted": 1
+        },
+        {
+          "target": "映画",
+          "predicted": "映画",
+          "confidence": 0.8246,
+          "delay_s": -0.97,
+          "n_emitted": 1
+        },
+        {
+          "target": "楽しい",
+          "predicted": "楽しい",
+          "confidence": 0.8552,
+          "delay_s": -0.87,
+          "n_emitted": 1
+        },
+        {
+          "target": "泣く",
+          "predicted": null,
+          "confidence": null,
+          "delay_s": null,
+          "n_emitted": 0
+        },
+        {
+          "target": "犬",
+          "predicted": "犬",
+          "confidence": 0.9139,
+          "delay_s": -1.17,
+          "n_emitted": 1
+        },
+        {
+          "target": "考える",
+          "predicted": "考える",
+          "confidence": 0.8071,
+          "delay_s": -1.3,
+          "n_emitted": 1
+        },
+        {
+          "target": "苦手",
+          "predicted": "苦手",
+          "confidence": 0.8366,
+          "delay_s": -1.43,
+          "n_emitted": 1
+        },
+        {
+          "target": "雨",
+          "predicted": "雨",
+          "confidence": 0.7948,
+          "delay_s": -0.8,
+          "n_emitted": 1
+        },
+        {
+          "target": "飲む",
+          "predicted": "飲む",
+          "confidence": 0.8133,
+          "delay_s": -1.6,
+          "n_emitted": 1
+        },
+        {
+          "target": "魚",
+          "predicted": "魚",
+          "confidence": 0.8988,
+          "delay_s": -1.13,
+          "n_emitted": 1
+        }
+      ],
+      "report": {
+        "n": 50,
+        "accuracy": 0.98,
+        "macro_precision": 0.98,
+        "macro_recall": 0.98,
+        "macro_f1": 0.98,
+        "weighted_precision": 0.98,
+        "weighted_recall": 0.98,
+        "weighted_f1": 0.98,
+        "none_rate": 0.02,
+        "per_class": {
+          "〜から": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ありがとう": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ある": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いくつか": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "いろいろ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "おとな": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "けれども": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "とても": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "どちら": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ほとんど": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "みる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "みんな": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "もらう": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "コーヒー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ゴルフ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "サッカー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "サークル": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スキー": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スケート": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "スポーツ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "テレビ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ネズミ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "バレーボール": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ビール": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ピアノ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "ラーメン": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "一緒": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "下手": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "今日": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "休憩": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "会社": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "元気": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "兄": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "夏": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "嫌い": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "安心": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "家": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "家族": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "帰る": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "教わる": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "映画": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "楽しい": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "泣く": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1,
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          },
+          "犬": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "考える": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "苦手": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "雨": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "飲む": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "魚": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 1,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        },
+        "confusion": {
+          "〜から": {
+            "〜から": 1
+          },
+          "ありがとう": {
+            "ありがとう": 1
+          },
+          "ある": {
+            "ある": 1
+          },
+          "いくつか": {
+            "いくつか": 1
+          },
+          "いる": {
+            "いる": 1
+          },
+          "いろいろ": {
+            "いろいろ": 1
+          },
+          "おとな": {
+            "おとな": 1
+          },
+          "けれども": {
+            "けれども": 1
+          },
+          "とても": {
+            "とても": 1
+          },
+          "どちら": {
+            "どちら": 1
+          },
+          "ほとんど": {
+            "ほとんど": 1
+          },
+          "みんな": {
+            "みんな": 1
+          },
+          "もらう": {
+            "もらう": 1
+          },
+          "ゴルフ": {
+            "ゴルフ": 1
+          },
+          "コーヒー": {
+            "コーヒー": 1
+          },
+          "サッカー": {
+            "サッカー": 1
+          },
+          "サークル": {
+            "サークル": 1
+          },
+          "スキー": {
+            "スキー": 1
+          },
+          "スケート": {
+            "スケート": 1
+          },
+          "スポーツ": {
+            "スポーツ": 1
+          },
+          "テレビ": {
+            "テレビ": 1
+          },
+          "ネズミ": {
+            "ネズミ": 1
+          },
+          "バレーボール": {
+            "バレーボール": 1
+          },
+          "ビール": {
+            "ビール": 1
+          },
+          "ピアノ": {
+            "ピアノ": 1
+          },
+          "みる": {
+            "みる": 1
+          },
+          "ラーメン": {
+            "ラーメン": 1
+          },
+          "一緒": {
+            "一緒": 1
+          },
+          "下手": {
+            "下手": 1
+          },
+          "今日": {
+            "今日": 1
+          },
+          "休憩": {
+            "休憩": 1
+          },
+          "会社": {
+            "会社": 1
+          },
+          "元気": {
+            "元気": 1
+          },
+          "兄": {
+            "兄": 1
+          },
+          "夏": {
+            "夏": 1
+          },
+          "嫌い": {
+            "嫌い": 1
+          },
+          "安心": {
+            "安心": 1
+          },
+          "家": {
+            "家": 1
+          },
+          "家族": {
+            "家族": 1
+          },
+          "帰る": {
+            "帰る": 1
+          },
+          "教わる": {
+            "教わる": 1
+          },
+          "映画": {
+            "映画": 1
+          },
+          "楽しい": {
+            "楽しい": 1
+          },
+          "泣く": {
+            "(none)": 1
+          },
+          "犬": {
+            "犬": 1
+          },
+          "考える": {
+            "考える": 1
+          },
+          "苦手": {
+            "苦手": 1
+          },
+          "雨": {
+            "雨": 1
+          },
+          "飲む": {
+            "飲む": 1
+          },
+          "魚": {
+            "魚": 1
+          }
+        },
+        "mean_delay_s": -1.125714285714286
+      }
+    },
+    "user_takes": {
+      "title": "Your held-out takes",
+      "note": "Honest: your newest take of each sign, never trained on",
+      "rows": [],
+      "report": null,
+      "skipped": "Record at least 3 takes of a sign to get held-out takes"
+    }
+  }
+}

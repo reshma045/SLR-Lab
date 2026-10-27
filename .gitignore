@@ -27,3 +27,7 @@ models/prototypes.tmp.npz
 data/landmarks_raw_extra/
 data/_tmp_import/
 artifacts_*.log
+models/eval.log
+models/eval_status.json
+models/glossfree.log
+models/glossfree_status.json
