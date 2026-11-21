@@ -84,7 +84,7 @@ class _FakeSession:
 
 def test_decision_logic_streak_cooldown_rearm():
     pred = JSLPredictor()
-    pred.session, pred.mode = _FakeSession(), "model"
+    pred.session, pred.mode, pred.protos = _FakeSession(), "model", None
     vec = np.ones(FEATURE_DIM, np.float32)
     t = [0.0]
 

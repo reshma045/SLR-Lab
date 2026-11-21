@@ -141,7 +141,7 @@ def train_glossfree(profile: str | None = "default", epochs: int = EPOCHS) -> di
     report = {"trained": time.strftime("%Y-%m-%d %H:%M:%S"), "profile": profile, "device": str(DEVICE),
               "epochs": epochs, "train_seconds": round(time.time() - t0, 1),
               "train_sentences": len(train_set), "test_sentences": len(test_set), "test_items": len(test_seq),
-              "metrics": metrics, "examples": examples,
+              "metrics": metrics, "examples": examples, "history": history,
               "description": ("Gloss-free model trained only on (motion, Japanese sentence) pairs synthesised by stitching "
                               "real recordings of the 50 signs (PoseStitch-SLT idea). Test = sentences never seen in "
                               "training. Same signer as training, and outputs are limited to this sentence space.")}

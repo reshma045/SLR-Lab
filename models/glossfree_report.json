@@ -932,5 +932,307 @@
       ]
     }
   ],
-  "description": "Gloss-free model trained only on (motion, Japanese sentence) pairs synthesised by stitching real recordings of the 50 signs (PoseStitch-SLT idea). Test = sentences never seen in training. Same signer as training, and outputs are limited to this sentence space."
+  "description": "Gloss-free model trained only on (motion, Japanese sentence) pairs synthesised by stitching real recordings of the 50 signs (PoseStitch-SLT idea). Test = sentences never seen in training. Same signer as training, and outputs are limited to this sentence space.",
+  "history": [
+    {
+      "epoch": 1,
+      "loss": 4.4223,
+      "seen_exact": null
+    },
+    {
+      "epoch": 2,
+      "loss": 2.9816,
+      "seen_exact": null
+    },
+    {
+      "epoch": 3,
+      "loss": 1.5445,
+      "seen_exact": null
+    },
+    {
+      "epoch": 4,
+      "loss": 1.0151,
+      "seen_exact": null
+    },
+    {
+      "epoch": 5,
+      "loss": 0.9066,
+      "seen_exact": null
+    },
+    {
+      "epoch": 6,
+      "loss": 0.8675,
+      "seen_exact": null
+    },
+    {
+      "epoch": 7,
+      "loss": 0.8517,
+      "seen_exact": null
+    },
+    {
+      "epoch": 8,
+      "loss": 0.8385,
+      "seen_exact": null
+    },
+    {
+      "epoch": 9,
+      "loss": 0.8299,
+      "seen_exact": null
+    },
+    {
+      "epoch": 10,
+      "loss": 0.8271,
+      "seen_exact": 1.0
+    },
+    {
+      "epoch": 11,
+      "loss": 0.8229,
+      "seen_exact": null
+    },
+    {
+      "epoch": 12,
+      "loss": 0.8202,
+      "seen_exact": null
+    },
+    {
+      "epoch": 13,
+      "loss": 0.8163,
+      "seen_exact": null
+    },
+    {
+      "epoch": 14,
+      "loss": 0.8147,
+      "seen_exact": null
+    },
+    {
+      "epoch": 15,
+      "loss": 0.813,
+      "seen_exact": null
+    },
+    {
+      "epoch": 16,
+      "loss": 0.8118,
+      "seen_exact": null
+    },
+    {
+      "epoch": 17,
+      "loss": 0.8094,
+      "seen_exact": null
+    },
+    {
+      "epoch": 18,
+      "loss": 0.808,
+      "seen_exact": null
+    },
+    {
+      "epoch": 19,
+      "loss": 0.8069,
+      "seen_exact": null
+    },
+    {
+      "epoch": 20,
+      "loss": 0.8064,
+      "seen_exact": 1.0
+    },
+    {
+      "epoch": 21,
+      "loss": 0.8048,
+      "seen_exact": null
+    },
+    {
+      "epoch": 22,
+      "loss": 0.8043,
+      "seen_exact": null
+    },
+    {
+      "epoch": 23,
+      "loss": 0.8032,
+      "seen_exact": null
+    },
+    {
+      "epoch": 24,
+      "loss": 0.8022,
+      "seen_exact": null
+    },
+    {
+      "epoch": 25,
+      "loss": 0.8029,
+      "seen_exact": null
+    },
+    {
+      "epoch": 26,
+      "loss": 0.8009,
+      "seen_exact": null
+    },
+    {
+      "epoch": 27,
+      "loss": 0.8004,
+      "seen_exact": null
+    },
+    {
+      "epoch": 28,
+      "loss": 0.8005,
+      "seen_exact": null
+    },
+    {
+      "epoch": 29,
+      "loss": 0.7992,
+      "seen_exact": null
+    },
+    {
+      "epoch": 30,
+      "loss": 0.7987,
+      "seen_exact": 1.0
+    },
+    {
+      "epoch": 31,
+      "loss": 0.7988,
+      "seen_exact": null
+    },
+    {
+      "epoch": 32,
+      "loss": 0.7985,
+      "seen_exact": null
+    },
+    {
+      "epoch": 33,
+      "loss": 0.798,
+      "seen_exact": null
+    },
+    {
+      "epoch": 34,
+      "loss": 0.7972,
+      "seen_exact": null
+    },
+    {
+      "epoch": 35,
+      "loss": 0.7969,
+      "seen_exact": null
+    },
+    {
+      "epoch": 36,
+      "loss": 0.7962,
+      "seen_exact": null
+    },
+    {
+      "epoch": 37,
+      "loss": 0.7956,
+      "seen_exact": null
+    },
+    {
+      "epoch": 38,
+      "loss": 0.7963,
+      "seen_exact": null
+    },
+    {
+      "epoch": 39,
+      "loss": 0.7965,
+      "seen_exact": null
+    },
+    {
+      "epoch": 40,
+      "loss": 0.7963,
+      "seen_exact": 1.0
+    },
+    {
+      "epoch": 41,
+      "loss": 0.7951,
+      "seen_exact": null
+    },
+    {
+      "epoch": 42,
+      "loss": 0.7948,
+      "seen_exact": null
+    },
+    {
+      "epoch": 43,
+      "loss": 0.7947,
+      "seen_exact": null
+    },
+    {
+      "epoch": 44,
+      "loss": 0.7945,
+      "seen_exact": null
+    },
+    {
+      "epoch": 45,
+      "loss": 0.7947,
+      "seen_exact": null
+    },
+    {
+      "epoch": 46,
+      "loss": 0.7944,
+      "seen_exact": null
+    },
+    {
+      "epoch": 47,
+      "loss": 0.7945,
+      "seen_exact": null
+    },
+    {
+      "epoch": 48,
+      "loss": 0.7944,
+      "seen_exact": null
+    },
+    {
+      "epoch": 49,
+      "loss": 0.7943,
+      "seen_exact": null
+    },
+    {
+      "epoch": 50,
+      "loss": 0.7937,
+      "seen_exact": 1.0
+    },
+    {
+      "epoch": 51,
+      "loss": 0.7937,
+      "seen_exact": null
+    },
+    {
+      "epoch": 52,
+      "loss": 0.7938,
+      "seen_exact": null
+    },
+    {
+      "epoch": 53,
+      "loss": 0.794,
+      "seen_exact": null
+    },
+    {
+      "epoch": 54,
+      "loss": 0.7937,
+      "seen_exact": null
+    },
+    {
+      "epoch": 55,
+      "loss": 0.7938,
+      "seen_exact": null
+    },
+    {
+      "epoch": 56,
+      "loss": 0.794,
+      "seen_exact": null
+    },
+    {
+      "epoch": 57,
+      "loss": 0.7932,
+      "seen_exact": null
+    },
+    {
+      "epoch": 58,
+      "loss": 0.7936,
+      "seen_exact": null
+    },
+    {
+      "epoch": 59,
+      "loss": 0.7937,
+      "seen_exact": null
+    },
+    {
+      "epoch": 60,
+      "loss": 0.7937,
+      "seen_exact": 1.0
+    }
+  ]
 }

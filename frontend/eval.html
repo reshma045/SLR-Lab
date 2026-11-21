@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/app.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 .cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:12px;align-items:start}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
@@ -24,6 +25,9 @@ tr.sel td{background:var(--accent-soft)}
 .defs dd{color:var(--muted);font-size:13px}
 .bad{color:var(--bad)}.mid{color:var(--warn)}.good{color:var(--ok)}
 .note{font-size:12px;color:var(--muted)}
+.curves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.curves .cw{position:relative;height:220px}
+@media (max-width:1100px){.curves{grid-template-columns:1fr}}
 @media (max-width:1100px){.cols{grid-template-columns:1fr}}
 </style>
 </head>
@@ -41,6 +45,20 @@ tr.sel td{background:var(--accent-soft)}
     <p class="note" style="margin-top:8px">Precision, recall and F1 are macro averages over signs (every sign counts equally). Click a row for per-sign detail.
       <b>Offline</b> = recorded data through the exact live pipeline. <b>Real-time</b> = your live webcam attempts on the Self-test page.</p>
   </section>
+
+  <section class="card"><h2>Learning curves<span class="sp"></span><a class="btn sm" href="/api/metrics/curves.png" target="_blank">Download PNG</a></h2>
+    <div class="curves"><div><div class="small muted">Sign classifier · loss</div><div class="cw"><canvas id="cLoss"></canvas></div></div>
+      <div><div class="small muted">Sign classifier · validation accuracy</div><div class="cw"><canvas id="cAcc"></canvas></div></div>
+      <div><div class="small muted">Gloss-free translation · training loss</div><div class="cw"><canvas id="cGf"></canvas></div></div></div>
+    <p class="note" id="curveNote" style="margin-top:8px"></p></section>
+
+  <section class="card"><h2>Deaf / hearing breakdown (real-time Self-test)<span class="sp"></span><a class="btn sm" href="/api/metrics/breakdown.csv">Export CSV</a></h2>
+    <div class="tablewrap"><table><thead><tr><th>Group</th><th class="num">Signers</th><th class="num">Attempts</th><th class="num">Accuracy</th>
+      <th class="num">Precision</th><th class="num">Recall</th><th class="num">F1</th><th class="num">No sign</th><th class="num">Latency</th></tr></thead><tbody id="grp"></tbody></table></div>
+    <details style="margin-top:8px"><summary class="small muted">Per signer</summary><div class="tablewrap"><table><thead><tr><th>Profile</th><th>Hearing</th><th>JSL</th>
+      <th class="num">Attempts</th><th class="num">Accuracy</th><th class="num">F1</th><th class="num">Latency</th></tr></thead><tbody id="prof"></tbody></table></div></details>
+    <p class="note" style="margin-top:8px">Each person tests with their own profile (Settings → Recording &amp; training → Profile, hearing status, JSL experience), then runs the Self-test.
+      Groups are compared on the same metrics; with few signers per group, report the numbers per signer as well.</p></section>
 
   <div class="cols">
     <div class="grid">
@@ -180,7 +198,38 @@ tr.sel td{background:var(--accent-soft)}
     $("gfTrain").onclick = async () => { const r = await JSL.api("/api/glossfree/train", { method: "POST" }); if (!r.started) JSL.toast(r.error, "bad"); glossfree(); };
     if (g.running) setTimeout(glossfree, 3000);
   }
-  load(); glossfree();
+  async function learningCurves() {
+    const c = await JSL.api("/api/metrics/curves");
+    if (!window.Chart) { $("curveNote").textContent = "Charts unavailable offline - use Download PNG."; return; }
+    const css = getComputedStyle(document.documentElement), tick = css.getPropertyValue("--muted").trim(), grid = css.getPropertyValue("--border").trim();
+    const opts = (yMax) => ({ animation: false, maintainAspectRatio: false, plugins: { legend: { labels: { color: tick, boxWidth: 10, font: { size: 11 } } } },
+      scales: { x: { title: { display: true, text: "epoch", color: tick }, ticks: { color: tick }, grid: { color: grid } },
+                y: { min: 0, max: yMax, ticks: { color: tick }, grid: { color: grid } } } });
+    const line = (label, data, color, dash) => ({ label, data, borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 0, borderDash: dash || [] });
+    const w = (c.word || {}).history || [], g = (c.glossfree || {}).history || [];
+    if (w.length) {
+      const ep = w.map(h => h.epoch);
+      new Chart($("cLoss"), { type: "line", data: { labels: ep, datasets: [line("training loss", w.map(h => h.train_loss), "#3b82f6"), line("validation loss", w.map(h => h.val_loss), "#f59e0b")] }, options: opts() });
+      const ds = [line("synthetic val (optimistic)", w.map(h => h.val_top1), "#8b949e", [4, 3])];
+      if (w.some(h => h.real_top1 != null)) ds.push(line("your held-out takes", w.map(h => h.real_top1), "#22c55e"));
+      new Chart($("cAcc"), { type: "line", data: { labels: ep, datasets: ds }, options: opts(1) });
+    }
+    if (g.length) new Chart($("cGf"), { type: "line", data: { labels: g.map(h => h.epoch), datasets: [line("training loss", g.map(h => h.loss), "#a855f7")] }, options: opts() });
+    $("curveNote").textContent = `Classifier: ${w.length} epochs (${(c.word || {}).trained || "?"}, ${(c.word || {}).device || ""}). Gloss-free: ${g.length} epochs. `
+      + "Training loss stays above validation loss because training uses heavy augmentation, label smoothing and dropout; the step at epoch 15 is where late dropout and adversarial weight perturbation switch on.";
+  }
+  async function breakdown() {
+    const b = await JSL.api("/api/metrics/breakdown");
+    $("grp").innerHTML = b.groups.map(g => `<tr><td>${JSL.esc(g.label)}</td><td class="num">${g.signers || 0}</td><td class="num">${g.n}</td>
+      <td class="num ${g.n ? cls(g.accuracy) : ""}">${g.n ? pct(g.accuracy) : "—"}</td><td class="num">${g.n ? pct(g.macro_precision) : "—"}</td>
+      <td class="num">${g.n ? pct(g.macro_recall) : "—"}</td><td class="num">${g.n ? pct(g.macro_f1) : "—"}</td><td class="num">${g.n ? pct(g.none_rate) : "—"}</td>
+      <td class="num">${g.mean_latency_s != null ? g.mean_latency_s.toFixed(2) + " s" : "—"}</td></tr>`).join("");
+    const H = { deaf: "Deaf", hoh: "Hard of hearing", hearing: "Hearing", unspecified: "Not specified" };
+    $("prof").innerHTML = b.profiles.map(p => `<tr><td>${JSL.esc(p.profile)}</td><td>${H[p.hearing] || p.hearing}</td><td>${JSL.esc(p.jsl)}</td>
+      <td class="num">${p.n}</td><td class="num">${pct(p.accuracy)}</td><td class="num">${pct(p.macro_f1)}</td>
+      <td class="num">${p.mean_latency_s != null ? p.mean_latency_s.toFixed(2) + " s" : "—"}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">No Self-test attempts yet.</td></tr>`;
+  }
+  load(); glossfree(); learningCurves(); breakdown();
 })();
 </script>
 </body>

@@ -312,3 +312,86 @@ def glossfree_status() -> dict:
 @router.post("/glossfree/train")
 def glossfree_train() -> dict:
     return glossfree_job.start("--profile", settings.load()["profile"])
+
+
+# ------------------------------------------------------------------ learning curves, signer groups
+from src.app import profiles  # noqa: E402
+
+
+@router.get("/metrics/curves")
+def learning_curves() -> dict:
+    from src.eval.curves import backfill_from_logs, curves
+    backfill_from_logs()
+    return curves()
+
+
+@router.get("/metrics/curves.png")
+def learning_curves_png() -> FileResponse:
+    from src.eval.curves import backfill_from_logs, plot
+    backfill_from_logs()
+    return FileResponse(plot(MODELS / "learning_curves.png"), media_type="image/png",
+                        headers={"Cache-Control": "no-store"})
+
+
+@router.get("/profiles")
+def list_profiles() -> dict:
+    names = sorted(set(recordings.profiles()) | set(profiles.load_all()) | {settings.load()["profile"]})
+    return {"active": settings.load()["profile"], "hearing_options": profiles.HEARING, "jsl_options": profiles.JSL,
+            "profiles": {n: profiles.get(n) for n in names}}
+
+
+@router.post("/profiles/{name}")
+def update_profile(name: str, body: dict = Body(...)) -> dict:
+    return profiles.update(name, body)
+
+
+def _breakdown() -> dict:
+    """Self-test (real-time) metrics per hearing group and per signer profile."""
+    import numpy as np
+    from src.eval.metrics import classification_report
+    rows = store.test_rows()
+    by_group: dict[str, list[dict]] = {}
+    by_profile: dict[str, list[dict]] = {}
+    for r in rows:
+        prof = r["profile"] or "default"
+        by_profile.setdefault(prof, []).append(r)
+        by_group.setdefault(profiles.get(prof)["hearing"], []).append(r)
+
+    def summarise(rs: list[dict]) -> dict:
+        rep = classification_report([x["target"] for x in rs], [x["predicted"] for x in rs])
+        lat = [x["latency_s"] for x in rs if x["latency_s"] is not None and x["correct"]]
+        return {"n": rep["n"], "accuracy": rep["accuracy"], "macro_precision": rep["macro_precision"],
+                "macro_recall": rep["macro_recall"], "macro_f1": rep["macro_f1"], "none_rate": rep["none_rate"],
+                "mean_latency_s": float(np.mean(lat)) if lat else None}
+
+    groups = []
+    for key, label in profiles.HEARING.items():
+        rs = by_group.get(key, [])
+        signers = sorted({x["profile"] or "default" for x in rs})
+        groups.append({"group": key, "label": label, "signers": len(signers),
+                       **(summarise(rs) if rs else {"n": 0})})
+    per_profile = [{"profile": p, **profiles.get(p), **summarise(rs)} for p, rs in sorted(by_profile.items())]
+    return {"groups": groups, "profiles": per_profile, "total_tests": len(rows)}
+
+
+@router.get("/metrics/breakdown")
+def breakdown() -> dict:
+    return _breakdown()
+
+
+@router.get("/metrics/breakdown.csv")
+def breakdown_csv() -> Response:
+    import csv
+    import io
+    b = _breakdown()
+    buf = io.StringIO()
+    cols = ["level", "name", "hearing", "jsl", "signers", "n", "accuracy", "macro_precision", "macro_recall",
+            "macro_f1", "none_rate", "mean_latency_s"]
+    w = csv.DictWriter(buf, fieldnames=cols, extrasaction="ignore")
+    w.writeheader()
+    for g in b["groups"]:
+        w.writerow({"level": "group", "name": g["label"], "hearing": g["group"], **g})
+    for p in b["profiles"]:
+        w.writerow({"level": "signer", "name": p["profile"], "signers": 1, **p})
+    return Response("\ufeff" + buf.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": "attachment; filename=jsl_deaf_hearing_breakdown.csv"})

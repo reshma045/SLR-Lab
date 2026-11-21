@@ -26,7 +26,7 @@ td.acc{font-weight:700}
   <div class="cols">
     <div class="grid">
       <section class="card">
-        <h2>Self-test<span class="sp"></span><span class="chip" id="progress">not started</span></h2>
+        <h2>Self-test<span class="sp"></span><span class="chip" title="Change in Settings → Recording & training">Signer <b id="who">…</b></span><span class="chip" id="progress">not started</span></h2>
         <div class="stage">
           <video autoplay muted playsinline></video><img alt="">
           <div class="overlay cam show"><div class="spin"></div><strong>Starting camera…</strong><span>Allow camera access.</span></div>
@@ -61,6 +61,7 @@ td.acc{font-weight:700}
   const $ = id => document.getElementById(id);
   JSL.nav(`<span class="chip"><span class="dot" id="wsDot"></span>WS <b id="wsTxt">…</b></span>`);
   const S = (await JSL.settings()).settings;
+  JSL.api("/api/profiles").then(p => { const me = p.profiles[p.active] || {}; $("who").textContent = `${p.active} · ${p.hearing_options[me.hearing || "unspecified"]}`; }).catch(() => {});
   const signs = (await JSL.api("/api/signs")).signs;
   if (S.test.show_reference) $("refCard").style.display = "";
   let queue = [], cur = null, phase = "idle", run = "", tStart = 0, timer = null, results = [];

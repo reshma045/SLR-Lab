@@ -196,7 +196,7 @@ class JSLPredictor:
     def _infer(self) -> np.ndarray:
         logits, emb = self.session.run(["logits", "embedding"], {"input": self.model_input()})
         p = softmax(logits[0])
-        if self.protos is not None:
+        if self.protos is not None and self.protos[1].shape[1] == emb.shape[1]:   # skip stale examples
             labels, vecs = self.protos
             e = emb[0] / (np.linalg.norm(emb[0]) + 1e-8)
             sims = vecs @ e

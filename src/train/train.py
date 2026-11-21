@@ -187,7 +187,7 @@ def train(profile: str | None = "default", max_epochs: int = EPOCHS) -> tuple[JS
                                for i, f in enumerate(shown["f1"])},
               "per_class_f1_source": "real" if r else "synthetic", "model": "JSLNet (Conv1D+Transformer)",
               "device": str(DEVICE), "epochs_trained": epoch, "train_seconds": round(time.time() - t0, 1),
-              "finished": time.strftime("%Y-%m-%d %H:%M:%S")}
+              "finished": time.strftime("%Y-%m-%d %H:%M:%S"), "history": history}
     with open(MODELS / "train_report.json", "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
     print("\n=== Best model ===")

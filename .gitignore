@@ -31,3 +31,4 @@ models/eval.log
 models/eval_status.json
 models/glossfree.log
 models/glossfree_status.json
+data/profiles.json

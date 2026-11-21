@@ -64,6 +64,9 @@
       <section class="card"><h2>Recording &amp; training</h2>
         <label class="field"><span>Profile<span class="hint">Your recordings are stored per profile (e.g. one per signer).</span></span>
           <span class="row"><input type="text" data-key="profile" list="profiles" style="max-width:200px"><datalist id="profiles"></datalist></span></label>
+        <label class="field"><span>Hearing status<span class="hint">Of the person using this profile. Used for the Deaf / hearing breakdown on the Evaluation page.</span></span>
+          <select id="profHearing"></select></label>
+        <label class="field"><span>JSL experience</span><select id="profJsl"></select></label>
         <label class="field"><span>Take length (s)</span><span class="row"><input type="range" min="2" max="8" step="0.5" data-key="record.duration_s"><span class="val" data-show="record.duration_s"></span></span></label>
         <label class="field"><span>Countdown (s)</span><span class="row"><input type="range" min="0" max="5" step="1" data-key="record.countdown_s"><span class="val" data-show="record.countdown_s"></span></span></label>
         <label class="field"><span>Target takes per sign</span><span class="row"><input type="range" min="3" max="20" step="1" data-key="record.target_per_sign"><span class="val" data-show="record.target_per_sign"></span></span></label>
@@ -157,6 +160,18 @@
     const cur = localStorage.getItem("jsl.camera") || "";
     $("camSel").innerHTML = `<option value="">Default camera</option>` + devs.map((d, i) => `<option value="${d.deviceId}" ${d.deviceId === cur ? "selected" : ""}>${JSL.esc(d.label || "Camera " + (i + 1))}</option>`).join("");
   }
+  // signer profile metadata (hearing status, JSL experience)
+  async function loadProfile() {
+    const p = await JSL.api("/api/profiles");
+    const opt = (o, v) => Object.entries(o).map(([k, l]) => `<option value="${k}" ${k === v ? "selected" : ""}>${JSL.esc(l)}</option>`).join("");
+    const me = p.profiles[p.active] || { hearing: "unspecified", jsl: "unspecified" };
+    $("profHearing").innerHTML = opt(p.hearing_options, me.hearing);
+    $("profJsl").innerHTML = opt(p.jsl_options, me.jsl);
+  }
+  for (const [id, key] of [["profHearing", "hearing"], ["profJsl", "jsl"]])
+    $(id).onchange = async () => { await JSL.api(`/api/profiles/${encodeURIComponent(data.settings.profile)}`, { method: "POST", body: { [key]: $(id).value } }); JSL.toast("Profile saved", "ok"); };
+  loadProfile().catch(() => {});
+  document.querySelector('[data-key="profile"]').addEventListener("change", () => setTimeout(() => loadProfile().catch(() => {}), 400));
   $("camSel").onchange = () => { const v = $("camSel").value; try { v ? localStorage.setItem("jsl.camera", v) : localStorage.removeItem("jsl.camera"); } catch (e) {} preview(v); JSL.toast("Camera saved for this browser", "ok"); };
   listCams().catch(() => {});
 
